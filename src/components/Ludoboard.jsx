@@ -47,6 +47,8 @@ const Ludoboard = () => {
       <div className="absolute top-[40%] left-[40%] w-[20%] h-[20%] border-b-[16px] border-b-red-600 border-t-[16px] border-t-yellow-300 border-l-[16px] border-l-green-500 border-r-[16px] border-r-blue-400"></div>
 
       {/* Path Cells */}
+
+      {/* green path */}
       <div className="absolute w-[6.66%] h-[6.66%] top-[40%] left-[6.66%] border border-gray-800 bg-green-500"></div>
       <div className="absolute w-[6.66%] h-[6.66%] top-[40%] left-[13.32%] border border-gray-800"></div>
       <div className="absolute w-[6.66%] h-[6.66%] top-[40%] left-[19.98%] border border-gray-800"></div>
@@ -59,6 +61,7 @@ const Ludoboard = () => {
       <div className="absolute w-[6.66%] h-[6.66%] top-[19.98%] left-[40%] border border-gray-800"></div>
       <div className="absolute w-[6.66%] h-[6.66%] top-[26.64%] left-[40%] border border-gray-800"></div>
       <div className="absolute w-[6.66%] h-[6.66%] top-[33.3%] left-[40%] border border-gray-800"></div>
+      <div className="absolute w-[6.66%] h-[6.66%] top-0 left-[53.32%] border border-gray-800 "></div>
 
       <div className="absolute w-[6.66%] h-[6.66%] top-0 left-[46.66%] border border-gray-800 text-white text-lg flex items-center justify-center">
         ↓
@@ -69,7 +72,6 @@ const Ludoboard = () => {
       <div className="absolute w-[6.66%] h-[6.66%] top-[26.64%] left-[46.66%] border border-gray-800 bg-yellow-300"></div>
       <div className="absolute w-[6.66%] h-[6.66%] top-[33.3%] left-[46.66%] border border-gray-800 bg-yellow-300"></div>
 
-      <div className="absolute w-[6.66%] h-[6.66%] top-0 left-[53.32%] border border-gray-800"></div>
       <div className="absolute w-[6.66%] h-[6.66%] top-[6.66%] left-[53.32%] border border-gray-800 bg-yellow-300 "></div>
       <div className="absolute w-[6.66%] h-[6.66%] top-[13.32%] left-[53.32%] border border-gray-800"></div>
       <div className="absolute w-[6.66%] h-[6.66%] top-[19.98%] left-[53.32%] border border-gray-800"></div>
