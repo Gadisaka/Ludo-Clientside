@@ -21,7 +21,11 @@ const dieMap = {
   6: diesix,
 };
 
-const socket = io("http://localhost:4000");
+const socket = io("http://localhost:4000", {
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+});
 
 const DieRollButton = () => {
   const [value, setValue] = useState(1);
