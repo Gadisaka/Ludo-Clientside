@@ -106,17 +106,65 @@ const GameLobby = ({ onGameStart }) => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-6 p-8 bg-gray-800 rounded-lg shadow-xl max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold text-white mb-4">Ludo Game Lobby</h1>
+    <div className="flex  flex-col items-center gap-6 p-8 bg-gray-800 rounded-lg shadow-xl max-w-2xl mx-auto">
+      <div className="flex justify-between items-center w-full h-ful">
+        <div className="flex justify-center   items-center gap-1">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width={20}
+            height={20}
+            viewBox="0 0 24 24"
+            fill="none"
+            className="inline-block"
+          >
+            <circle cx="12" cy="12" r="10" fill="#FFD700" />
+            <ellipse cx="12" cy="16" rx="7" ry="2" fill="#F6C700" />
+            <circle cx="12" cy="12" r="7" fill="#FFE066" />
+            <ellipse cx="12" cy="10" rx="4" ry="1.2" fill="#FFF9C4" />
+          </svg>
+          <h1 className="text-xl font-normal text-white ">23.00</h1>
+        </div>
+        <div className="flex justify-between items-center gap-2 ">
+          <button
+            onClick={handleCreateGame}
+            disabled={!isConnected}
+            className={`px-4 py-1 bg-gradient-to-r from-green-400 via-green-500 to-green-700 text-white rounded-full hover:from-green-500 hover:to-green-700 transition-colors ${
+              !isConnected ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            New +
+          </button>
+          <button
+            onClick={() => socket.emit("get_available_games")}
+            disabled={!isConnected}
+            title="Reload games"
+            className={`p-2 rounded-full hover:bg-gray-700 transition-colors ${
+              !isConnected ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            {/* Reload Icon */}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width={20}
+              height={20}
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              className="text-white"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582M20 20v-5h-.581M19.418 9A7.978 7.978 0 0012 4c-3.042 0-5.824 1.721-7.418 4M4.582 15A7.978 7.978 0 0012 20c3.042 0 5.824-1.721 7.418-4"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
 
       {isConnecting && (
         <div className="text-yellow-500 mb-4">Connecting to server...</div>
-      )}
-
-      {!isConnected && !isConnecting && (
-        <div className="text-red-500 mb-4">
-          {error || "Failed to connect to server"}
-        </div>
       )}
 
       <div className="w-full max-w-md">
@@ -125,56 +173,55 @@ const GameLobby = ({ onGameStart }) => {
           placeholder="Enter your name"
           value={playerName}
           onChange={(e) => setPlayerName(e.target.value)}
-          className="w-full px-4 py-2 rounded text-black mb-4"
+          className="w-full px-4 py-2 rounded border text-white mb-4"
           disabled={!isConnected}
         />
 
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
-        <div className="flex flex-col gap-4">
-          {isConnected && availableGames.length > 0 ? (
-            <>
-              <h2 className="text-xl text-white mb-2">Available Games:</h2>
-              <div className="space-y-3">
-                {availableGames.map((game) => (
-                  <div
-                    key={game.roomId}
-                    className="flex items-center justify-between bg-gray-700 p-4 rounded"
-                  >
+        <div className="flex flex-col gap-4"></div>
+        {isConnected && availableGames.length > 0 ? (
+          <>
+            <h2 className="text-xl text-white mb-2">Available Games:</h2>
+            <div className="space-y-3">
+              {availableGames.map((game) => (
+                <div
+                  key={game.roomId}
+                  className="p-[1px] rounded-xl border border-transparent bg-gradient-to-r from-red-500     via-blue-500 to-purple-500 animate-gradient-x-border"
+                >
+                  <div className="flex items-center justify-between bg-gray-700 p-4 rounded-xl">
                     <div className="text-white">
-                      <p>Host: {game.hostName}</p>
+                      <p>
+                        <span className="text-yellow-500 font-bold ">
+                          Host:
+                        </span>{" "}
+                        {game.hostName}
+                      </p>
                       <p className="text-sm text-gray-300">
                         Players: {game.playerCount}/2
                       </p>
                     </div>
                     <button
                       onClick={() => handleJoinGame(game.roomId)}
-                      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                      className="px-4 py-1 text-white rounded-full font-semibold 
+             bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 
+             bg-[length:300%_300%] animate-gradient-x transition-colors duration-300"
                     >
                       Join Game
                     </button>
                   </div>
-                ))}
-              </div>
-            </>
-          ) : isConnected ? (
-            <div className="text-center text-gray-300 mb-4">
-              No available games. Create one to start playing!
+                </div>
+              ))}
             </div>
-          ) : null}
-
-          <button
-            onClick={handleCreateGame}
-            disabled={!isConnected}
-            className={`w-full px-4 py-3 bg-green-500 text-white rounded hover:bg-green-600 transition-colors ${
-              !isConnected ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-          >
-            Create New Game
-          </button>
-        </div>
+          </>
+        ) : isConnected ? (
+          <div className="text-center text-gray-300 mb-4">
+            No available games. Create one to start playing!
+          </div>
+        ) : null}
       </div>
     </div>
+    // </div>
   );
 };
 
