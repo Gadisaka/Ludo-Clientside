@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from "react";
-import io from "socket.io-client";
-
-const socket = io("https://ludo-serverside.onrender.com", {
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-  timeout: 10000,
-  transports: ["websocket", "polling"],
-});
+import socket from "../socket";
 
 const GameLobby = ({ onGameStart }) => {
   const [playerName, setPlayerName] = useState("");
@@ -77,8 +69,12 @@ const GameLobby = ({ onGameStart }) => {
       setError("Please enter your name");
       return;
     }
+    console.log("Creating room with name:", playerName.trim());
     socket.emit("create_room", { playerName: playerName.trim() });
+
+    // Listen for room creation response
     socket.once("room_created", ({ roomId }) => {
+      console.log("Room created successfully:", roomId);
       onGameStart(roomId);
     });
   };
@@ -88,7 +84,12 @@ const GameLobby = ({ onGameStart }) => {
       setError("Please enter your name");
       return;
     }
-    console.log("Attempting to join room:", roomId);
+    console.log(
+      "Attempting to join room:",
+      roomId,
+      "with name:",
+      playerName.trim()
+    );
     socket.emit("join_room", { roomId, playerName: playerName.trim() });
 
     // Listen for room update to confirm successful join
@@ -143,7 +144,7 @@ const GameLobby = ({ onGameStart }) => {
                     <div className="text-white">
                       <p>Host: {game.hostName}</p>
                       <p className="text-sm text-gray-300">
-                        Players: {game.playerCount}/4
+                        Players: {game.playerCount}/2
                       </p>
                     </div>
                     <button
