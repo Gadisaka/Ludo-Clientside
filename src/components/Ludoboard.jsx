@@ -10,7 +10,6 @@ const Ludoboard = () => {
           <div className="absolute w-[25%] h-[25%] top-[20%] right-[20%] bg-green-500"></div>
           <div className="absolute w-[25%] h-[25%] bottom-[20%] left-[20%] bg-green-500"></div>
           <div className="absolute w-[25%] h-[25%] bottom-[20%] right-[20%] bg-green-500"></div>
-          <i className="fa-solid fa-location-pin z-20"></i>
         </div>
       </div>
 
