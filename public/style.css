@@ -1,0 +1,243 @@
+:root {
+  --red: #fa0000;
+  --green: #009a2a;
+  --yellow: #fee800;
+  --blue: #00acff;
+}
+/* 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: radial-gradient(
+    circle,
+    rgba(11, 64, 177, 1) 0%,
+    rgba(7, 30, 78, 1) 100%
+  );
+} */
+
+.ludoContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+  width: 100%;
+  height: 50%;
+}
+
+#ludoBoard {
+  max-width: 300px;
+  max-height: 300px;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  display: grid;
+  grid-template-areas:
+    "red-Board red-Board green-Path green-Board green-Board"
+    "red-Board red-Board green-Path green-Board green-Board"
+    "red-Path red-Path win-Zone yellow-Path yellow-Path"
+    "blue-Board blue-Board blue-Path yellow-Board yellow-Board"
+    "blue-Board blue-Board blue-Path yellow-Board yellow-Board";
+}
+/* board  */
+#red-Board {
+  grid-area: red-Board;
+  background-color: var(--red);
+}
+
+#green-Board {
+  grid-area: green-Board;
+  background-color: var(--green);
+}
+
+#yellow-Board {
+  grid-area: yellow-Board;
+  background-color: var(--yellow);
+}
+
+#blue-Board {
+  grid-area: blue-Board;
+  background-color: var(--blue);
+}
+
+/* path   */
+#green-Path {
+  grid-area: green-Path;
+  display: grid;
+}
+
+#blue-Path {
+  grid-area: blue-Path;
+}
+
+#yellow-Path {
+  grid-area: yellow-Path;
+}
+
+#red-Path {
+  grid-area: red-Path;
+}
+
+#win-Zone {
+  grid-area: win-Zone;
+}
+
+.verticalPath {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+}
+
+.horizontalPath {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+.board {
+  padding: 12px;
+  background: #1212;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.board div {
+  width: 80%;
+  height: 80%;
+  background: white;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  align-items: center;
+  justify-items: center;
+}
+
+.board div span {
+  height: 50%;
+  width: 50%;
+  border-radius: 50%;
+  position: relative;
+}
+
+#yellow-Board div span {
+  background: var(--yellow);
+}
+
+#red-Board div span {
+  background: var(--red);
+}
+
+#green-Board div span {
+  background: var(--green);
+}
+
+#blue-Board div span {
+  background: var(--blue);
+}
+
+.ludoBox {
+  border: 1px solid #11111142;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ludoBox .fa-location-pin {
+  position: absolute;
+  margin: 2px;
+  font-size: 2rem;
+  transform: translate(0, -40%);
+  -webkit-text-stroke-width: 2px;
+  z-index: 100;
+  animation: animateMyI 0.08s linear;
+  -webkit-text-stroke-color: rgb(255, 255, 255);
+}
+
+.ludoBox .fa-star {
+  position: absolute;
+  color: #222;
+  opacity: 0.6;
+}
+
+@keyframes animateMyI {
+  0% {
+    transform: scale(1.1) translate(0, -40%);
+  }
+  100% {
+    transform: scale(1) translate(0, -40%);
+  }
+}
+
+.ludoBox .fa-location-pin:nth-child(2) {
+  transform: translate(10px, -40%);
+}
+
+.ludoBox .fa-location-pin:nth-child(3) {
+  transform: translate(-10px, -40%);
+}
+
+.ludoBox .fa-location-pin:nth-child(4) {
+  transform: translate(0px, -40%) scale(0.8);
+}
+
+.redLudoBox {
+  background: var(--red);
+}
+
+.greenLudoBox {
+  background: var(--green);
+}
+
+.yellowLudoBox {
+  background: var(--yellow);
+}
+
+.blueLudoBox {
+  background: var(--blue);
+}
+
+.board .piece {
+  position: absolute;
+  -webkit-text-stroke-width: 2px;
+  -webkit-text-stroke-color: rgb(255, 255, 255);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -90%);
+  font-size: 2.3rem;
+  z-index: 100;
+}
+
+.board.active {
+  animation: animateBoard 0.8s linear infinite;
+}
+
+@keyframes animateBoard {
+  0% {
+    filter: brightness(1.4);
+  }
+  50% {
+    filter: brightness(1);
+  }
+  100% {
+    filter: brightness(1.4);
+  }
+}
+.red-piece {
+  color: var(--red);
+  z-index: 100;
+}
+.blue-piece {
+  color: var(--blue);
+  z-index: 100;
+}
+.green-piece {
+  color: var(--green);
+}
+.yellow-piece {
+  color: var(--yellow);
+}

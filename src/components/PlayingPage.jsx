@@ -78,7 +78,7 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
   };
 
   return (
-    <div className="text-white flex flex-col w-full items-center justify-center">
+    <div className="text-white flex flex-col w-full h-screen items-center">
       <div className="w-full max-w-4xl flex justify-between items-center px-4">
         <button
           onClick={onLeaveGame}
