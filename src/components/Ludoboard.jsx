@@ -5,11 +5,12 @@ const Ludoboard = () => {
     <div className="relative w-[300px] h-[300px] border-2 border-gray-100 flex flex-wrap">
       {/* Green House */}
       <div className="absolute w-[40%] h-[40%] p-[7%] bg-green-500">
-        <div className="relative w-full h-full bg-white p-[20%]">
+        <div className="relative w-full h-full bg-white p-[20%] ludoBox">
           <div className="absolute w-[25%] h-[25%] top-[20%] left-[20%] bg-green-500"></div>
           <div className="absolute w-[25%] h-[25%] top-[20%] right-[20%] bg-green-500"></div>
           <div className="absolute w-[25%] h-[25%] bottom-[20%] left-[20%] bg-green-500"></div>
           <div className="absolute w-[25%] h-[25%] bottom-[20%] right-[20%] bg-green-500"></div>
+          <i className="fa-solid fa-location-pin z-20"></i>
         </div>
       </div>
 

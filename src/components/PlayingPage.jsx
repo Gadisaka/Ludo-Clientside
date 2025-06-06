@@ -78,7 +78,7 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
   };
 
   return (
-    <div className="text-white flex flex-col items-center justify-center">
+    <div className="text-white flex flex-col w-full items-center justify-center">
       <div className="w-full max-w-4xl flex justify-between items-center px-4">
         <button
           onClick={onLeaveGame}
@@ -93,26 +93,6 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
 
       {/* Display players and last roll info */}
       <div className="w-full max-w-xl  p-4 rounded-lg">
-        <div className="flex w-full justify-between items-center mb-4">
-          {players.map((player) => (
-            <div
-              key={player.id}
-              className={`flex items-center flex-col justify-center p-2 w-[70px] h-[70px] rounded ${
-                player.id === currentTurn ? "bg-blue-500/20" : "bg-gray-700/50"
-              }`}
-            >
-              {player.id === currentTurn && <span>🎲</span>}
-              <span
-                className={`text-white text-2xl font-bold ${
-                  player.id === currentTurn ? "text-yellow-500" : ""
-                }`}
-              >
-                {player.name}
-              </span>
-            </div>
-          ))}
-        </div>
-
         {lastRoll && (
           <div className="   rounded text-center">
             <p>
@@ -135,6 +115,25 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
         gameStatus={gameStatus}
         onRoll={handleSocketRoll}
       />
+      <div className="flex w-full    justify-between items-center mb-4">
+        {players.map((player) => (
+          <div
+            key={player.id}
+            className={`flex items-center  justify-center py-2 w-[100px] h-fit rounded ${
+              player.id === currentTurn ? "bg-blue-500/20" : "bg-gray-700/50"
+            }`}
+          >
+            {player.id === currentTurn && <span>🎲</span>}
+            <span
+              className={`text-white text-2xl font-bold ${
+                player.id === currentTurn ? "text-yellow-500" : ""
+              }`}
+            >
+              {player.name}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
