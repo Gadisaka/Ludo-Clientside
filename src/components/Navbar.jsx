@@ -26,7 +26,7 @@ const Navbar = () => {
             <img
               src={avatar}
               alt="User Avatar"
-              className="w-[30px] h-[30px] rounded-full"
+              className="w-[32px] h-[32px] rounded-full"
             />
           ) : (
             <svg
