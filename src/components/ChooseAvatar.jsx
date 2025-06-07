@@ -115,7 +115,7 @@ const ChooseAvatar = ({ open, onClose }) => {
       </DialogContent>
       <DialogActions sx={{ background: "#05051f", color: "#fff" }}>
         <Button onClick={onClose} sx={{ color: "#fff" }}>
-          Cancel
+          continue as guest
         </Button>
         <Button
           onClick={handleSubmit}
