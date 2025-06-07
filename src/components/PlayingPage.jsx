@@ -19,6 +19,8 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
 
   useSocketEvents(roomId);
 
+  // const [displayName, setDisplayName] = useState("");
+
   return (
     <div className="text-white flex flex-col w-full h-screen items-center">
       <div className="w-full max-w-4xl flex justify-between items-center px-4">

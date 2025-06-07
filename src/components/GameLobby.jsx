@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import socket from "../socket";
+import useUserStore from "../store/zutstand";
 
 const GameLobby = ({ onGameStart }) => {
   const [playerName, setPlayerName] = useState("");
@@ -7,6 +8,15 @@ const GameLobby = ({ onGameStart }) => {
   const [error, setError] = useState("");
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(true);
+  const username = useUserStore((state) => state.username);
+
+  useEffect(() => {
+    if (username) {
+      setPlayerName(username);
+    } else {
+      setPlayerName("Guest");
+    }
+  }, [username]);
 
   useEffect(() => {
     const handleConnect = () => {
@@ -168,14 +178,14 @@ const GameLobby = ({ onGameStart }) => {
       )}
 
       <div className="w-full max-w-md">
-        <input
+        {/* <input
           type="text"
           placeholder="Enter your name"
           value={playerName}
           onChange={(e) => setPlayerName(e.target.value)}
           className="w-full px-4 py-2 rounded border text-white mb-4"
           disabled={!isConnected}
-        />
+        /> */}
 
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
