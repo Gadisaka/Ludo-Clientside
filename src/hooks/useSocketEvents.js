@@ -38,6 +38,12 @@ const useSocketEvents = (roomId) => {
       }
     );
 
+    // listed for while the die is rolling
+    socket.on("rolling_dice", () => {
+      setIsRolling(true);
+      setError("");
+    });
+
     socket.on("roll_dice", ({ value }) => {
       setValue(value);
       setIsRolling(false);

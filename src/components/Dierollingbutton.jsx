@@ -20,11 +20,11 @@ const dieMap = {
 const DieRollingPage = ({
   value = 1,
   isRolling,
-  isMyTurn,
-  gameStatus,
+  // isMyTurn,
+  // gameStatus,
   onRoll,
 }) => {
-  const isDisabled = isRolling || !isMyTurn || gameStatus !== "playing";
+  const isDisabled = false;
 
   return (
     <div className="flex justify-center bg-gray-300/30 border rounded-lg border-white/20 mt-4 backdrop-blur-md ">
