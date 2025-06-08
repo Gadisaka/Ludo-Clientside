@@ -4,9 +4,11 @@ const useUserStore = create((set) => ({
   avatar: null, // URL or base64 string for the avatar image
   username: "",
   age: null,
+  currentPlayerColor: "",
   setAvatar: (avatar) => set({ avatar }),
   setUsername: (username) => set({ username }),
   setAge: (age) => set({ age }),
+  setCurrentPlayerColor: (currentPlayerColor) => set({ currentPlayerColor }),
 }));
 
 export default useUserStore;

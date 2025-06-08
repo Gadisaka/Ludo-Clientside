@@ -4,6 +4,7 @@ import LudoBoard from "./Ludoboard";
 import socket from "../socket";
 import { useGame } from "../context/GameContext";
 import useSocketEvents from "../hooks/useSocketEvents";
+import useUserStore from "../store/zutstand";
 
 const PlayingPage = ({ roomId, onLeaveGame }) => {
   const {
@@ -35,7 +36,7 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
         </p>
       </div>
 
-      <div className="w-full max-w-xl p-4 rounded-lg">
+      <div className="w-full max-w-xl   rounded-lg">
         {lastRoll && (
           <div className="text-center">
             <p>
@@ -48,7 +49,7 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
         {error && <p className="text-red-500 text-center">{error}</p>}
       </div>
 
-      <LudoBoard />
+      <LudoBoard roomId={roomId} />
       <DieRollingPage
         value={value}
         isRolling={isRolling}
@@ -66,6 +67,7 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
             }`}
           >
             {player.id === currentTurn && <span>🎲</span>}
+
             <span
               className={`text-white text-2xl font-bold ${
                 player.id === currentTurn ? "text-yellow-500" : ""

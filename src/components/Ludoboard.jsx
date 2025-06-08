@@ -1,23 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../../public/style.css";
+import socket from "../socket";
+import { useGame } from "../context/GameContext";
+import useUserStore from "../store/zutstand";
 
-const redPath = ["r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8", "r9", "r10"];
-const greenPath = ["g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g10"];
-const yellowPath = [
-  "y1",
-  "y2",
-  "y3",
-  "y4",
-  "y5",
-  "y6",
-  "y7",
-  "y8",
-  "y9",
-  "y10",
-];
-const bluePath = ["b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8", "b9", "b10"];
-
-const LudoBoard = () => {
+const LudoBoard = ({ roomId }) => {
+  const { currentTurn, players, setGameStatus } = useGame();
+  const setCurrentPlayerColor = useUserStore(
+    (state) => state.setCurrentPlayerColor
+  );
   const [redPositions, setRedPositions] = useState([null, null, null, null]);
   const [greenPositions, setGreenPositions] = useState([
     null,
@@ -32,41 +23,187 @@ const LudoBoard = () => {
     null,
   ]);
   const [bluePositions, setBluePositions] = useState([null, null, null, null]);
-  const rolledNumber = 1; // Replace with actual dice roll later
+
+  const redPath = [
+    "b13",
+    "r1",
+    "r2",
+    "r3",
+    "r4",
+    "r5",
+    "b12",
+    "rh1",
+    "rh2",
+    "rh3",
+    "rh4",
+    "rh5",
+    "b11",
+    "b10",
+    "b9",
+    "b8",
+    "b7",
+    "b6",
+  ];
+
+  const greenPath = [
+    "r11",
+    "r12",
+    "r13",
+    "r10",
+    "gh1",
+    "g1",
+    "r9",
+    "gh2",
+    "g2",
+    "r8",
+    "gh3",
+    "g3",
+    "r7",
+    "gh4",
+    "g4",
+    "r6",
+    "gh5",
+    "g5",
+  ];
+
+  const yellowPath = [
+    "g6",
+    "g7",
+    "g8",
+    "g9",
+    "g10",
+    "g11",
+    "yh5",
+    "yh4",
+    "yh3",
+    "yh2",
+    "yh1",
+    "g12",
+    "y5",
+    "y4",
+    "y3",
+    "y2",
+    "y1",
+    "g13",
+  ];
+
+  const bluePath = [
+    "b5",
+    "bh5",
+    "y6",
+    "b4",
+    "bh4",
+    "y7",
+    "b3",
+    "bh3",
+    "y8",
+    "b2",
+    "bh2",
+    "y9",
+    "b1",
+    "bh1",
+    "y10",
+    "y13",
+    "y12",
+    "y11",
+  ];
+
+  // Get current player's color
+  const playerColor = players.find((p) => p.id === socket.id)?.color;
+  setCurrentPlayerColor(playerColor);
+
+  // Listen for game events
+  useEffect(() => {
+    socket.on("piece_moved", ({ color, positions }) => {
+      switch (color) {
+        case "red":
+          setRedPositions(positions);
+          break;
+        case "green":
+          setGreenPositions(positions);
+          break;
+        case "yellow":
+          setYellowPositions(positions);
+          break;
+        case "blue":
+          setBluePositions(positions);
+          break;
+        default:
+          console.error("Invalid color");
+      }
+    });
+
+    socket.on("piece_killed", ({ color, pieceIndex }) => {
+      switch (color) {
+        case "red":
+          setRedPositions((prev) => {
+            const updated = [...prev];
+            updated[pieceIndex] = null;
+            return updated;
+          });
+          break;
+        case "green":
+          setGreenPositions((prev) => {
+            const updated = [...prev];
+            updated[pieceIndex] = null;
+            return updated;
+          });
+          break;
+        case "yellow":
+          setYellowPositions((prev) => {
+            const updated = [...prev];
+            updated[pieceIndex] = null;
+            return updated;
+          });
+          break;
+        case "blue":
+          setBluePositions((prev) => {
+            const updated = [...prev];
+            updated[pieceIndex] = null;
+            return updated;
+          });
+          break;
+        default:
+          console.error("Invalid color");
+      }
+    });
+
+    socket.on("piece_finished", ({ color, pieceIndex }) => {
+      // Handle piece finishing (you might want to show an animation or message)
+      console.log(`${color} piece ${pieceIndex} has finished!`);
+    });
+
+    socket.on("game_over", ({ color }) => {
+      setGameStatus("finished");
+      // You might want to show a game over message or animation
+      console.log(`Game over! ${color} player has won!`);
+    });
+
+    return () => {
+      socket.off("piece_moved");
+      socket.off("piece_killed");
+      socket.off("piece_finished");
+      socket.off("game_over");
+    };
+  }, [setGameStatus]);
 
   function movePieceByColor(color, index) {
-    let path, setPositions;
-    switch (color) {
-      case "red":
-        path = redPath;
-        setPositions = setRedPositions;
-        break;
-      case "green":
-        path = greenPath;
-        setPositions = setGreenPositions;
-        break;
-      case "yellow":
-        path = yellowPath;
-        setPositions = setYellowPositions;
-        break;
-      case "blue":
-        path = bluePath;
-        setPositions = setBluePositions;
-        break;
-      default:
-        console.error("Invalid color");
-        return;
+    // Only allow movement if it's the player's turn and it's their color
+    if (socket.id !== currentTurn) {
+      console.log("Not your turn!");
+      return;
     }
 
-    setPositions((prev) => {
-      const currentPos = prev[index];
-      const currentIndex = currentPos ? path.indexOf(currentPos) : -1;
-      const newIndex = currentIndex + rolledNumber;
-      if (newIndex >= path.length) return prev;
+    if (color !== playerColor) {
+      console.log("You can only move your own pieces!");
+      return;
+    }
 
-      const updated = [...prev];
-      updated[index] = path[newIndex];
-      return updated;
+    // Emit the piece movement
+    socket.emit("move_piece", {
+      roomId,
+      color,
+      pieceIndex: index,
     });
   }
 
@@ -89,26 +226,7 @@ const LudoBoard = () => {
 
           {/* GREEN PATH */}
           <div id="green-Path" className="verticalPath">
-            {[
-              "r11",
-              "r12",
-              "r13",
-              "r10",
-              "gh1",
-              "g1",
-              "r9",
-              "gh2",
-              "g2",
-              "r8",
-              "gh3",
-              "g3",
-              "r7",
-              "gh4",
-              "g4",
-              "r6",
-              "gh5",
-              "g5",
-            ].map((id) => (
+            {greenPath.map((id) => (
               <div
                 className={`ludoBox ${
                   id.startsWith("gh") || id === "g1" ? "greenLudoBox" : ""
@@ -143,26 +261,7 @@ const LudoBoard = () => {
 
           {/* RED PATH */}
           <div id="red-Path" className="horizontalPath">
-            {[
-              "b13",
-              "r1",
-              "r2",
-              "r3",
-              "r4",
-              "r5",
-              "b12",
-              "rh1",
-              "rh2",
-              "rh3",
-              "rh4",
-              "rh5",
-              "b11",
-              "b10",
-              "b9",
-              "b8",
-              "b7",
-              "b6",
-            ].map((id) => (
+            {redPath.map((id) => (
               <div
                 className={`ludoBox ${
                   id.startsWith("rh") || id === "r1" ? "redLudoBox" : ""
@@ -183,26 +282,7 @@ const LudoBoard = () => {
           </div>
           <div id="win-Zone"></div>
           <div id="yellow-Path" className="horizontalPath">
-            {[
-              "g6",
-              "g7",
-              "g8",
-              "g9",
-              "g10",
-              "g11",
-              "yh5",
-              "yh4",
-              "yh3",
-              "yh2",
-              "yh1",
-              "g12",
-              "y5",
-              "y4",
-              "y3",
-              "y2",
-              "y1",
-              "g13",
-            ].map((id) => (
+            {yellowPath.map((id) => (
               <div
                 className={`ludoBox ${
                   id.startsWith("yh") || id === "y1" ? "yellowLudoBox" : ""
@@ -234,26 +314,7 @@ const LudoBoard = () => {
             </div>
           </div>
           <div id="blue-Path" className="verticalPath">
-            {[
-              "b5",
-              "bh5",
-              "y6",
-              "b4",
-              "bh4",
-              "y7",
-              "b3",
-              "bh3",
-              "y8",
-              "b2",
-              "bh2",
-              "y9",
-              "b1",
-              "bh1",
-              "y10",
-              "y13",
-              "y12",
-              "y11",
-            ].map((id) => (
+            {bluePath.map((id) => (
               <div
                 className={`ludoBox ${
                   id.startsWith("bh") || id === "b1" ? "blueLudoBox" : ""
