@@ -24,6 +24,8 @@ const LudoBoard = ({ roomId }) => {
   ]);
   const [bluePositions, setBluePositions] = useState([null, null, null, null]);
 
+  let piecePosId;
+
   const redPath = [
     "b13",
     "r1",
@@ -173,6 +175,8 @@ const LudoBoard = ({ roomId }) => {
       switch (color) {
         case "red":
           setRedPositions(positions);
+          console.log(positions, "grgrgr");
+
           break;
         case "green":
           setGreenPositions(positions);
@@ -289,12 +293,21 @@ const LudoBoard = ({ roomId }) => {
                 id={id}
                 key={id}
                 onClick={() => {
-                  const pieceIndex = greenPositions.findIndex(
-                    (pos) => pos === id
-                  );
-                  if (pieceIndex !== -1) {
-                    movePieceByColor("green", pieceIndex);
-                  }
+                  let posIndex;
+                  ALL_PATHS.map((pathId) => {
+                    piecePosId = greenPositions.find((pos) => pos === pathId);
+                    if (piecePosId !== undefined) {
+                      console.log(piecePosId);
+                      posIndex = ALL_PATHS.findIndex((p) => piecePosId === p);
+
+                      console.log(posIndex);
+                      return;
+                    }
+                    if (piecePosId !== -1 && piecePosId !== undefined) {
+                      movePieceByColor("green", posIndex + 1);
+                      console.log(piecePosId);
+                    }
+                  });
                 }}
               >
                 {greenPositions.map((pos, idx) =>
