@@ -52,9 +52,7 @@ function Home() {
         </ul>
       </aside>
 
-      {/* 🟡 Main Section */}
       <main className="flex flex-col items-center gap-5 w-full md:w-3/4">
-        {/* Balance */}
         <div className="w-full bg-gray-800 py-4 px-4 rounded-xl text-xl font-bold text-white flex justify-between items-center shadow-md shadow-yellow-500/10 hover:shadow-yellow-500/30 transition">
           <h1 className="flex items-center gap-1">
             Balance:{" "}
@@ -79,7 +77,6 @@ function Home() {
           </button>
         </div>
 
-        {/* Play Card */}
         <div className="flex flex-col items-center justify-center gap-5 text-white bg-gray-800 p-6 rounded-xl shadow-xl max-w-sm w-full">
           <div className="relative group">
             <div className="absolute -inset-1 rounded-lg blur-sm bg-gradient-to-r from-red-400 via-yellow-400 to-purple-500 opacity-30 group-hover:opacity-50 transition duration-500"></div>
@@ -96,7 +93,6 @@ function Home() {
           </Link>
         </div>
 
-        {/* Room Previews */}
         <div className="w-full max-w-sm flex flex-col gap-2 text-white mt-2">
           <h2 className="text-lg font-semibold text-gray-300 border-b border-gray-600 pb-1">
             Recent Rooms
@@ -117,7 +113,6 @@ function Home() {
           </ul>
         </div>
 
-        {/* How It Works */}
         <div className="w-full max-w-sm mt-6 p-4 rounded-xl bg-gray-800 text-gray-300">
           <h2 className="text-lg font-semibold mb-3 border-b border-gray-600 pb-1">
             How It Works

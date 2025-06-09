@@ -27,7 +27,6 @@ const ChooseAvatar = ({ open, onClose }) => {
     setSelectedAvatar(index);
   };
 
-  // Zustand store to manage user data
   const setAvatar = useUserStore((state) => state.setAvatar);
   const setUsernameStore = useUserStore((state) => state.setUsername);
   const setAgeStore = useUserStore((state) => state.setAge);
