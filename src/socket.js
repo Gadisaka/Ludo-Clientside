@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
-const socket = io("https://ludo-serverside.onrender.com", {
+const socket = io("http://localhost:4002", {
   reconnection: true,
   reconnectionAttempts: Infinity,
   reconnectionDelay: 1000,

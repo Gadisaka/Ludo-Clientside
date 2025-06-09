@@ -108,6 +108,61 @@ const LudoBoard = ({ roomId }) => {
     "y11",
   ];
 
+  const ALL_PATHS = [
+    "r1",
+    "r2",
+    "r3",
+    "r4",
+    "r5",
+    "r6",
+    "r7",
+    "r8",
+    "r9",
+    "r10",
+    "r11",
+    "r12",
+    "r13",
+    "g1",
+    "g2",
+    "g3",
+    "g4",
+    "g5",
+    "g6",
+    "g7",
+    "g8",
+    "g9",
+    "g10",
+    "g11",
+    "g12",
+    "g13",
+    "b1",
+    "b2",
+    "b3",
+    "b4",
+    "b5",
+    "b6",
+    "b7",
+    "b8",
+    "b9",
+    "b10",
+    "b11",
+    "b12",
+    "b13",
+    "y1",
+    "y2",
+    "y3",
+    "y4",
+    "y5",
+    "y6",
+    "y7",
+    "y8",
+    "y9",
+    "y10",
+    "y11",
+    "y12",
+    "y13",
+  ];
+
   // Get current player's color
   const playerColor = players.find((p) => p.id === socket.id)?.color;
   setCurrentPlayerColor(playerColor);
@@ -233,6 +288,14 @@ const LudoBoard = ({ roomId }) => {
                 }`}
                 id={id}
                 key={id}
+                onClick={() => {
+                  const pieceIndex = greenPositions.findIndex(
+                    (pos) => pos === id
+                  );
+                  if (pieceIndex !== -1) {
+                    movePieceByColor("green", pieceIndex);
+                  }
+                }}
               >
                 {greenPositions.map((pos, idx) =>
                   pos === id ? (
@@ -268,6 +331,14 @@ const LudoBoard = ({ roomId }) => {
                 }`}
                 id={id}
                 key={id}
+                onClick={() => {
+                  const pieceIndex = redPositions.findIndex(
+                    (pos) => pos === id
+                  );
+                  if (pieceIndex !== -1) {
+                    movePieceByColor("red", pieceIndex);
+                  }
+                }}
               >
                 {redPositions.map((pos, idx) =>
                   pos === id ? (
@@ -289,6 +360,14 @@ const LudoBoard = ({ roomId }) => {
                 }`}
                 id={id}
                 key={id}
+                onClick={() => {
+                  const pieceIndex = yellowPositions.findIndex(
+                    (pos) => pos === id
+                  );
+                  if (pieceIndex !== -1) {
+                    movePieceByColor("yellow", pieceIndex);
+                  }
+                }}
               >
                 {yellowPositions.map((pos, idx) =>
                   pos === id ? (
@@ -321,6 +400,14 @@ const LudoBoard = ({ roomId }) => {
                 }`}
                 id={id}
                 key={id}
+                onClick={() => {
+                  const pieceIndex = bluePositions.findIndex(
+                    (pos) => pos === id
+                  );
+                  if (pieceIndex !== -1) {
+                    movePieceByColor("blue", pieceIndex);
+                  }
+                }}
               >
                 {bluePositions.map((pos, idx) =>
                   pos === id ? (
