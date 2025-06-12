@@ -270,179 +270,149 @@ const LudoBoard = ({ roomId }) => {
     <>
       <div className="ludoContainer">
         <div id="ludoBoard">
-          {/* RED HOME */}
           <div id="red-Board" className="board">
             <div>
-              {[0, 1, 2, 3].map((i) => (
-                <span key={i} onClick={() => movePieceByColor("red", i)}>
-                  {!redPositions[i] && (
-                    <i className="fa-solid fa-location-pin piece red-piece"></i>
-                  )}
-                </span>
-              ))}
+              <span>
+                <i className="fa-solid fa-location-pin piece red-piece"></i>
+              </span>
+              <span>
+                <i className="fa-solid fa-location-pin piece red-piece"></i>
+              </span>
+              <span>
+                <i className="fa-solid fa-location-pin piece red-piece"></i>
+              </span>
+              <span>
+                <i className="fa-solid fa-location-pin piece red-piece"></i>
+              </span>
             </div>
           </div>
 
-          {/* GREEN PATH */}
-          <div id="green-Path" className="verticalPath">
-            {greenPath.map((id) => (
-              <div
-                className={`ludoBox ${
-                  id.startsWith("gh") || id === "g1" ? "greenLudoBox" : ""
-                }`}
-                id={id}
-                key={id}
-                onClick={() => {
-                  let posIndex;
-                  ALL_PATHS.map((pathId) => {
-                    piecePosId = greenPositions.find((pos) => pos === pathId);
-                    if (piecePosId !== undefined) {
-                      console.log(piecePosId);
-                      posIndex = ALL_PATHS.findIndex((p) => piecePosId === p);
+          <div className="ludoBox verticalPath" id="p1"></div>
+          <div className="ludoBox verticalPath" id="p2"></div>
+          <div className="ludoBox verticalPath" id="p3"></div>
+          <div className="ludoBox verticalPath" id="p4"></div>
+          <div className="ludoBox verticalPath greenLudoBox" id="p5"></div>
+          <div className="ludoBox verticalPath greenLudoBox" id="p6"></div>
+          <div className="ludoBox verticalPath" id="p7"></div>
+          <div className="ludoBox verticalPath greenLudoBox" id="p8"></div>
+          <div className="ludoBox verticalPath" id="p9"></div>
+          <div className="ludoBox verticalPath" id="p10"></div>
+          <div className="ludoBox verticalPath greenLudoBox" id="p11"></div>
+          <div className="ludoBox verticalPath" id="p12"></div>
+          <div className="ludoBox verticalPath" id="p13"></div>
+          <div className="ludoBox verticalPath greenLudoBox" id="p14"></div>
+          <div className="ludoBox verticalPath" id="p15"></div>
+          <div className="ludoBox verticalPath" id="p16"></div>
+          <div className="ludoBox verticalPath greenLudoBox" id="p17"></div>
+          <div className="ludoBox verticalPath" id="p18"></div>
 
-                      console.log(posIndex);
-                      return;
-                    }
-                    if (piecePosId !== -1 && piecePosId !== undefined) {
-                      movePieceByColor("green", posIndex + 1);
-                      console.log(piecePosId);
-                    }
-                  });
-                }}
-              >
-                {greenPositions.map((pos, idx) =>
-                  pos === id ? (
-                    <i
-                      key={idx}
-                      className="fa-solid fa-location-pin piece green-piece"
-                    />
-                  ) : null
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* GREEN HOME */}
           <div id="green-Board" className="board">
             <div>
-              {[0, 1, 2, 3].map((i) => (
-                <span key={i} onClick={() => movePieceByColor("green", i)}>
-                  {!greenPositions[i] && (
-                    <i className="fa-solid fa-location-pin piece green-piece"></i>
-                  )}
-                </span>
-              ))}
+              <span>
+                <i className="fa-solid fa-location-pin piece green-piece"></i>
+              </span>
+              <span>
+                <i className="fa-solid fa-location-pin piece green-piece"></i>
+              </span>
+              <span>
+                <i className="fa-solid fa-location-pin piece green-piece"></i>
+              </span>
+              <span>
+                <i className="fa-solid fa-location-pin piece green-piece"></i>
+              </span>
             </div>
           </div>
 
-          {/* RED PATH */}
-          <div id="red-Path" className="horizontalPath">
-            {redPath.map((id) => (
-              <div
-                className={`ludoBox ${
-                  id.startsWith("rh") || id === "r1" ? "redLudoBox" : ""
-                }`}
-                id={id}
-                key={id}
-                onClick={() => {
-                  const pieceIndex = redPositions.findIndex(
-                    (pos) => pos === id
-                  );
-                  if (pieceIndex !== -1) {
-                    movePieceByColor("red", pieceIndex);
-                  }
-                }}
-              >
-                {redPositions.map((pos, idx) =>
-                  pos === id ? (
-                    <i
-                      key={idx}
-                      className="fa-solid fa-location-pin piece red-piece"
-                    />
-                  ) : null
-                )}
-              </div>
-            ))}
-          </div>
+          <div className="ludoBox horizontalPath" id="p19"></div>
+          <div className="ludoBox horizontalPath " id="p20"></div>
+          <div className="ludoBox horizontalPath" id="p21"></div>
+          <div className="ludoBox horizontalPath" id="p22"></div>
+          <div className="ludoBox horizontalPath yellowLudoBox" id="p23"></div>
+          <div className="ludoBox horizontalPath yellowLudoBox" id="p24"></div>
+          <div className="ludoBox horizontalPath " id="p25"></div>
+          <div className="ludoBox horizontalPath  yellowLudoBox" id="p26"></div>
+          <div className="ludoBox horizontalPath  " id="p27"></div>
+          <div className="ludoBox horizontalPath  " id="p28"></div>
+          <div className="ludoBox horizontalPath  yellowLudoBox" id="p29"></div>
+          <div className="ludoBox horizontalPath " id="p30"></div>
+          <div className="ludoBox horizontalPath" id="p31"></div>
+          <div className="ludoBox horizontalPath yellowLudoBox" id="p32"></div>
+          <div className="ludoBox horizontalPath" id="p33"></div>
+          <div className="ludoBox horizontalPath" id="p34"></div>
+          <div className="ludoBox horizontalPath yellowLudoBox" id="p35"></div>
+          <div className="ludoBox horizontalPath" id="p36"></div>
+
           <div id="win-Zone"></div>
-          <div id="yellow-Path" className="horizontalPath">
-            {yellowPath.map((id) => (
-              <div
-                className={`ludoBox ${
-                  id.startsWith("yh") || id === "y1" ? "yellowLudoBox" : ""
-                }`}
-                id={id}
-                key={id}
-                onClick={() => {
-                  const pieceIndex = yellowPositions.findIndex(
-                    (pos) => pos === id
-                  );
-                  if (pieceIndex !== -1) {
-                    movePieceByColor("yellow", pieceIndex);
-                  }
-                }}
-              >
-                {yellowPositions.map((pos, idx) =>
-                  pos === id ? (
-                    <i
-                      key={idx}
-                      className="fa-solid fa-location-pin piece yellow-piece"
-                    />
-                  ) : null
-                )}
-              </div>
-            ))}
-          </div>
+
+          <div className="ludoBox horizontalPath" id="p37"></div>
+          <div className="ludoBox horizontalPath redLudoBox" id="p38"></div>
+          <div className="ludoBox horizontalPath" id="p39"></div>
+          <div className="ludoBox horizontalPath" id="p40"></div>
+          <div className="ludoBox horizontalPath" id="p41"></div>
+          <div className="ludoBox horizontalPath" id="p42"></div>
+          <div className="ludoBox horizontalPath " id="p43"></div>
+          <div className="ludoBox horizontalPath redLudoBox" id="p44"></div>
+          <div className="ludoBox horizontalPath redLudoBox" id="p45"></div>
+          <div className="ludoBox horizontalPath redLudoBox" id="p46"></div>
+          <div className="ludoBox horizontalPath redLudoBox" id="p47"></div>
+          <div className="ludoBox horizontalPath redLudoBox" id="p48"></div>
+          <div className="ludoBox horizontalPath" id="p49"></div>
+          <div className="ludoBox horizontalPath" id="p50"></div>
+          <div className="ludoBox horizontalPath" id="p51"></div>
+          <div className="ludoBox horizontalPath" id="p52"></div>
+          <div className="ludoBox horizontalPath " id="p53"></div>
+          <div className="ludoBox horizontalPath" id="p54"></div>
 
           <div id="blue-Board" className="board">
             <div>
-              {[0, 1, 2, 3].map((i) => (
-                <span key={i} onClick={() => movePieceByColor("blue", i)}>
-                  {!bluePositions[i] && (
-                    <i className="fa-solid fa-location-pin piece blue-piece"></i>
-                  )}
-                </span>
-              ))}
+              <span>
+                <i className="fa-solid fa-location-pin piece blue-piece"></i>
+              </span>
+              <span>
+                <i className="fa-solid fa-location-pin piece blue-piece"></i>
+              </span>
+              <span>
+                <i className="fa-solid fa-location-pin piece blue-piece"></i>
+              </span>
+              <span>
+                <i className="fa-solid fa-location-pin piece blue-piece"></i>
+              </span>
             </div>
           </div>
-          <div id="blue-Path" className="verticalPath">
-            {bluePath.map((id) => (
-              <div
-                className={`ludoBox ${
-                  id.startsWith("bh") || id === "b1" ? "blueLudoBox" : ""
-                }`}
-                id={id}
-                key={id}
-                onClick={() => {
-                  const pieceIndex = bluePositions.findIndex(
-                    (pos) => pos === id
-                  );
-                  if (pieceIndex !== -1) {
-                    movePieceByColor("blue", pieceIndex);
-                  }
-                }}
-              >
-                {bluePositions.map((pos, idx) =>
-                  pos === id ? (
-                    <i
-                      key={idx}
-                      className="fa-solid fa-location-pin piece blue-piece"
-                    />
-                  ) : null
-                )}
-              </div>
-            ))}
-          </div>
+
+          <div className="ludoBox verticalPath" id="p55"></div>
+          <div className="ludoBox verticalPath blueLudoBox" id="p56"></div>
+          <div className="ludoBox verticalPath" id="p57"></div>
+          <div className="ludoBox verticalPath" id="p58"></div>
+          <div className="ludoBox verticalPath blueLudoBox" id="p59"></div>
+          <div className="ludoBox verticalPath" id="p60"></div>
+          <div className="ludoBox verticalPath" id="p61"></div>
+          <div className="ludoBox verticalPath blueLudoBox" id="p62"></div>
+          <div className="ludoBox verticalPath" id="p63"></div>
+          <div className="ludoBox verticalPath" id="p64"></div>
+          <div className="ludoBox verticalPath blueLudoBox" id="p65"></div>
+          <div className="ludoBox verticalPath" id="p66"></div>
+          <div className="ludoBox verticalPath blueLudoBox" id="p67"></div>
+          <div className="ludoBox verticalPath blueLudoBox" id="p68"></div>
+          <div className="ludoBox verticalPath" id="p69"></div>
+          <div className="ludoBox verticalPath" id="p70"></div>
+          <div className="ludoBox verticalPath" id="p71"></div>
+          <div className="ludoBox verticalPath" id="p72"></div>
 
           <div id="yellow-Board" className="board">
             <div>
-              {[0, 1, 2, 3].map((i) => (
-                <span key={i} onClick={() => movePieceByColor("yellow", i)}>
-                  {!yellowPositions[i] && (
-                    <i className="fa-solid fa-location-pin piece yellow-piece"></i>
-                  )}
-                </span>
-              ))}
+              <span>
+                <i className="fa-solid fa-location-pin piece yellow-piece"></i>
+              </span>
+              <span>
+                <i className="fa-solid fa-location-pin piece yellow-piece"></i>
+              </span>
+              <span>
+                <i className="fa-solid fa-location-pin piece yellow-piece"></i>
+              </span>
+              <span>
+                <i className="fa-solid fa-location-pin piece yellow-piece"></i>
+              </span>
             </div>
           </div>
         </div>
