@@ -225,7 +225,7 @@ const GameLobby = ({ onGameStart }) => {
             </div>
           </>
         ) : isConnected ? (
-          <div className="text-center text-gray-300 mb-4">
+          <div className="text-center text-gray-300 ">
             No available games. Create one to start playing!
           </div>
         ) : null}

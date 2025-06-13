@@ -1,253 +1,81 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "../../public/style.css";
 import socket from "../socket";
 import { useGame } from "../context/GameContext";
 import useUserStore from "../store/zutstand";
+import Token from "./Token";
+import { ludoBoxCoordinates } from "../constants/constants";
 
 const LudoBoard = ({ roomId }) => {
   const { currentTurn, players, setGameStatus } = useGame();
   const setCurrentPlayerColor = useUserStore(
     (state) => state.setCurrentPlayerColor
   );
-  const [redPositions, setRedPositions] = useState([null, null, null, null]);
-  const [greenPositions, setGreenPositions] = useState([
-    null,
-    null,
-    null,
-    null,
-  ]);
-  const [yellowPositions, setYellowPositions] = useState([
-    null,
-    null,
-    null,
-    null,
-  ]);
-  const [bluePositions, setBluePositions] = useState([null, null, null, null]);
+  const [gameState, setGameState] = useState(null);
+  const [previousGameState, setPreviousGameState] = useState(null);
+  const [ludoCoordinates, setLudoCoordinates] = useState({});
+  const [error, setError] = useState(null);
 
-  let piecePosId;
-
-  const redPath = [
-    "b13",
-    "r1",
-    "r2",
-    "r3",
-    "r4",
-    "r5",
-    "b12",
-    "rh1",
-    "rh2",
-    "rh3",
-    "rh4",
-    "rh5",
-    "b11",
-    "b10",
-    "b9",
-    "b8",
-    "b7",
-    "b6",
-  ];
-
-  const greenPath = [
-    "r11",
-    "r12",
-    "r13",
-    "r10",
-    "gh1",
-    "g1",
-    "r9",
-    "gh2",
-    "g2",
-    "r8",
-    "gh3",
-    "g3",
-    "r7",
-    "gh4",
-    "g4",
-    "r6",
-    "gh5",
-    "g5",
-  ];
-
-  const yellowPath = [
-    "g6",
-    "g7",
-    "g8",
-    "g9",
-    "g10",
-    "g11",
-    "yh5",
-    "yh4",
-    "yh3",
-    "yh2",
-    "yh1",
-    "g12",
-    "y5",
-    "y4",
-    "y3",
-    "y2",
-    "y1",
-    "g13",
-  ];
-
-  const bluePath = [
-    "b5",
-    "bh5",
-    "y6",
-    "b4",
-    "bh4",
-    "y7",
-    "b3",
-    "bh3",
-    "y8",
-    "b2",
-    "bh2",
-    "y9",
-    "b1",
-    "bh1",
-    "y10",
-    "y13",
-    "y12",
-    "y11",
-  ];
-
-  const ALL_PATHS = [
-    "r1",
-    "r2",
-    "r3",
-    "r4",
-    "r5",
-    "r6",
-    "r7",
-    "r8",
-    "r9",
-    "r10",
-    "r11",
-    "r12",
-    "r13",
-    "g1",
-    "g2",
-    "g3",
-    "g4",
-    "g5",
-    "g6",
-    "g7",
-    "g8",
-    "g9",
-    "g10",
-    "g11",
-    "g12",
-    "g13",
-    "b1",
-    "b2",
-    "b3",
-    "b4",
-    "b5",
-    "b6",
-    "b7",
-    "b8",
-    "b9",
-    "b10",
-    "b11",
-    "b12",
-    "b13",
-    "y1",
-    "y2",
-    "y3",
-    "y4",
-    "y5",
-    "y6",
-    "y7",
-    "y8",
-    "y9",
-    "y10",
-    "y11",
-    "y12",
-    "y13",
-  ];
+  useEffect(() => {
+    setLudoCoordinates(ludoBoxCoordinates);
+  }, []);
 
   // Get current player's color
   const playerColor = players.find((p) => p.id === socket.id)?.color;
   setCurrentPlayerColor(playerColor);
 
+  // Handle socket errors
+  const handleError = useCallback((message) => {
+    setError(message);
+    setTimeout(() => setError(null), 3000); // Clear error after 3 seconds
+  }, []);
+
   // Listen for game events
   useEffect(() => {
-    socket.on("piece_moved", ({ color, positions }) => {
-      switch (color) {
-        case "red":
-          setRedPositions(positions);
-          console.log(positions, "grgrgr");
+    socket.on("error_message", handleError);
 
-          break;
-        case "green":
-          setGreenPositions(positions);
-          break;
-        case "yellow":
-          setYellowPositions(positions);
-          break;
-        case "blue":
-          setBluePositions(positions);
-          break;
-        default:
-          console.error("Invalid color");
-      }
+    socket.on("piece_moved", ({ positions }) => {
+      setPreviousGameState(gameState);
+      setGameState(positions);
     });
 
     socket.on("piece_killed", ({ color, pieceIndex }) => {
-      switch (color) {
-        case "red":
-          setRedPositions((prev) => {
-            const updated = [...prev];
-            updated[pieceIndex] = null;
-            return updated;
-          });
-          break;
-        case "green":
-          setGreenPositions((prev) => {
-            const updated = [...prev];
-            updated[pieceIndex] = null;
-            return updated;
-          });
-          break;
-        case "yellow":
-          setYellowPositions((prev) => {
-            const updated = [...prev];
-            updated[pieceIndex] = null;
-            return updated;
-          });
-          break;
-        case "blue":
-          setBluePositions((prev) => {
-            const updated = [...prev];
-            updated[pieceIndex] = null;
-            return updated;
-          });
-          break;
-        default:
-          console.error("Invalid color");
-      }
+      // You might want to show an animation or message for killed pieces
+      console.log(`${color} piece ${pieceIndex} was killed!`);
     });
 
     socket.on("piece_finished", ({ color, pieceIndex }) => {
-      // Handle piece finishing (you might want to show an animation or message)
+      // Show animation or message for finished pieces
       console.log(`${color} piece ${pieceIndex} has finished!`);
     });
 
     socket.on("game_over", ({ color }) => {
       setGameStatus("finished");
-      // You might want to show a game over message or animation
+      // Show game over message
       console.log(`Game over! ${color} player has won!`);
     });
 
     return () => {
+      socket.off("error_message");
       socket.off("piece_moved");
       socket.off("piece_killed");
       socket.off("piece_finished");
       socket.off("game_over");
     };
-  }, [setGameStatus]);
+  }, [setGameStatus, gameState, handleError]);
+
+  // Example arrow function (currently unused)
+  const initialPosition = {
+    pieces: {
+      red: ["rh1", "rh2", "rh3", "rh4"],
+      green: ["gh1", "gh2", "gh3", "gh4"],
+      blue: ["bh1", "bh2", "bh3", "bh4"],
+      yellow: ["yh1", "yh2", "yh3", "yh4"],
+    },
+  };
+  console.log(typeof initialPosition.pieces);
 
   function movePieceByColor(color, index) {
-    // Only allow movement if it's the player's turn and it's their color
     if (socket.id !== currentTurn) {
       console.log("Not your turn!");
       return;
@@ -258,7 +86,6 @@ const LudoBoard = ({ roomId }) => {
       return;
     }
 
-    // Emit the piece movement
     socket.emit("move_piece", {
       roomId,
       color,
@@ -272,18 +99,10 @@ const LudoBoard = ({ roomId }) => {
         <div id="ludoBoard">
           <div id="red-Board" className="board">
             <div>
-              <span>
-                <i className="fa-solid fa-location-pin piece red-piece"></i>
-              </span>
-              <span>
-                <i className="fa-solid fa-location-pin piece red-piece"></i>
-              </span>
-              <span>
-                <i className="fa-solid fa-location-pin piece red-piece"></i>
-              </span>
-              <span>
-                <i className="fa-solid fa-location-pin piece red-piece"></i>
-              </span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
             </div>
           </div>
 
@@ -308,18 +127,10 @@ const LudoBoard = ({ roomId }) => {
 
           <div id="green-Board" className="board">
             <div>
-              <span>
-                <i className="fa-solid fa-location-pin piece green-piece"></i>
-              </span>
-              <span>
-                <i className="fa-solid fa-location-pin piece green-piece"></i>
-              </span>
-              <span>
-                <i className="fa-solid fa-location-pin piece green-piece"></i>
-              </span>
-              <span>
-                <i className="fa-solid fa-location-pin piece green-piece"></i>
-              </span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
             </div>
           </div>
 
@@ -365,18 +176,10 @@ const LudoBoard = ({ roomId }) => {
 
           <div id="blue-Board" className="board">
             <div>
-              <span>
-                <i className="fa-solid fa-location-pin piece blue-piece"></i>
-              </span>
-              <span>
-                <i className="fa-solid fa-location-pin piece blue-piece"></i>
-              </span>
-              <span>
-                <i className="fa-solid fa-location-pin piece blue-piece"></i>
-              </span>
-              <span>
-                <i className="fa-solid fa-location-pin piece blue-piece"></i>
-              </span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
             </div>
           </div>
 
@@ -401,20 +204,46 @@ const LudoBoard = ({ roomId }) => {
 
           <div id="yellow-Board" className="board">
             <div>
-              <span>
-                <i className="fa-solid fa-location-pin piece yellow-piece"></i>
-              </span>
-              <span>
-                <i className="fa-solid fa-location-pin piece yellow-piece"></i>
-              </span>
-              <span>
-                <i className="fa-solid fa-location-pin piece yellow-piece"></i>
-              </span>
-              <span>
-                <i className="fa-solid fa-location-pin piece yellow-piece"></i>
-              </span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
             </div>
           </div>
+
+          {/* {Object.entries(initialPosition.pieces).map(([color, tokens]) =>
+          tokens.map((tokenId) => {
+            const prevToken = previousGameState?.tokens.find(
+              (t) => t.id === tokenId
+            ) || { position: { id: null } };
+
+            const currentPosition = ludoCoordinates[tokenId] || { x: 0, y: 0 };
+            const previousPosition = ludoCoordinates[
+              prevToken.position?.id
+            ] || {
+              x: 0,
+              y: 0,
+            };
+
+            return (
+              <Token
+                key={tokenId}
+                position={currentPosition}
+                color={color}
+                previousPosition={previousPosition}
+              />
+            );
+          })
+        )} */}
+          {["yh1", "yh2", "p70", "yh4"].map((pos, index) => (
+            <Token
+              key={pos}
+              position={pos}
+              color={"yellow"}
+              previousPosition={pos}
+              onClick={() => console.log("tada")}
+            />
+          ))}
         </div>
       </div>
     </>
