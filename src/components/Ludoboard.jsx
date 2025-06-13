@@ -11,14 +11,15 @@ const LudoBoard = ({ roomId }) => {
   const setCurrentPlayerColor = useUserStore(
     (state) => state.setCurrentPlayerColor
   );
-  const [gameState, setGameState] = useState(null);
-  const [previousGameState, setPreviousGameState] = useState(null);
-  const [ludoCoordinates, setLudoCoordinates] = useState({});
+  const [gameState, setGameState] = useState({
+    pieces: {
+      red: ["rh1", "rh2", "rh3", "rh4"],
+      green: ["gh1", "gh2", "gh3", "gh4"],
+      blue: ["bh1", "bh2", "bh3", "bh4"],
+      yellow: ["yh1", "yh2", "yh3", "yh4"],
+    },
+  });
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    setLudoCoordinates(ludoBoxCoordinates);
-  }, []);
 
   // Get current player's color
   const playerColor = players.find((p) => p.id === socket.id)?.color;
@@ -31,38 +32,27 @@ const LudoBoard = ({ roomId }) => {
   }, []);
 
   // Listen for initial game state
-  useEffect(() => {
-    console.log("Setting up initial_game_state listener in LudoBoard");
-
-    const handleInitialGameState = (gameState) => {
-      console.log("Initial game state received in LudoBoard:", gameState);
-      setGameState(gameState);
-      setPreviousGameState(gameState);
-    };
-
-    // Remove any existing listeners first
-    socket.off("initial_game_state");
-
-    // Add the new listener
-    socket.on("initial_game_state", handleInitialGameState);
-
-    // Log socket connection status
-    console.log("Socket connected:", socket.connected);
-    console.log("Socket ID:", socket.id);
-
-    return () => {
-      console.log("Cleaning up initial_game_state listener in LudoBoard");
-      socket.off("initial_game_state", handleInitialGameState);
-    };
-  }, [roomId]); // Add roomId as dependency to re-setup listener when room changes
 
   // Listen for game events
   useEffect(() => {
     socket.on("error_message", handleError);
 
-    socket.on("piece_moved", ({ pieces }) => {
-      setPreviousGameState(gameState);
+    socket.on("piece_moved", (pieces) => {
       setGameState(pieces);
+      const updatedPieces = { ...pieces };
+      for (const color in updatedPieces) {
+        for (let i = 0; i < updatedPieces[color].length; i++) {
+          if (updatedPieces[color][i] !== gameState?.pieces?.[color]?.[i]) {
+            const newPosition = ludoCoordinates[updatedPieces[color][i]];
+            const oldPosition =
+              ludoCoordinates[gameState?.pieces?.[color]?.[i]];
+            // Trigger animation for the moved token
+            // Pass the new position as the animation target
+            // You might need to adjust this based on your animation logic
+            // For now, we're just setting the position directly
+          }
+        }
+      }
     });
 
     socket.on("piece_killed", ({ color, pieceIndex }) => {
@@ -216,20 +206,15 @@ const LudoBoard = ({ roomId }) => {
               <span></span>
             </div>
           </div>
-          {Object.entries(gameState?.pieces || {}).map(([color, tokens]) =>
+          {Object.entries(gameState.pieces).map(([color, tokens]) =>
             tokens.map((pos, index) => {
-              const currentPosition = ludoCoordinates[pos];
-              const prevPosition = previousGameState?.pieces?.[color]?.[index]
-                ? ludoCoordinates[previousGameState.pieces[color][index]]
-                : { x: 0, y: 0 };
-
               return (
                 <Token
                   key={`${color}-${index}`}
-                  position={currentPosition}
+                  position={pos}
                   color={color}
-                  previousPosition={prevPosition}
                   onClick={() => movePieceByColor(color, index)}
+                  animate={pos}
                 />
               );
             })
