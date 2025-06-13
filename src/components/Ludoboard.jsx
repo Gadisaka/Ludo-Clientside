@@ -30,17 +30,43 @@ const LudoBoard = ({ roomId }) => {
     setTimeout(() => setError(null), 3000); // Clear error after 3 seconds
   }, []);
 
+  // Listen for initial game state
+  useEffect(() => {
+    console.log("Setting up initial_game_state listener in LudoBoard");
+
+    const handleInitialGameState = (gameState) => {
+      console.log("Initial game state received in LudoBoard:", gameState);
+      setGameState(gameState);
+      setPreviousGameState(gameState);
+    };
+
+    // Remove any existing listeners first
+    socket.off("initial_game_state");
+
+    // Add the new listener
+    socket.on("initial_game_state", handleInitialGameState);
+
+    // Log socket connection status
+    console.log("Socket connected:", socket.connected);
+    console.log("Socket ID:", socket.id);
+
+    return () => {
+      console.log("Cleaning up initial_game_state listener in LudoBoard");
+      socket.off("initial_game_state", handleInitialGameState);
+    };
+  }, [roomId]); // Add roomId as dependency to re-setup listener when room changes
+
   // Listen for game events
   useEffect(() => {
     socket.on("error_message", handleError);
 
-    socket.on("piece_moved", ({ positions }) => {
+    socket.on("piece_moved", ({ pieces }) => {
       setPreviousGameState(gameState);
-      setGameState(positions);
+      setGameState(pieces);
     });
 
     socket.on("piece_killed", ({ color, pieceIndex }) => {
-      // You might want to show an animation or message for killed pieces
+      // Animation or message for killed pieces
       console.log(`${color} piece ${pieceIndex} was killed!`);
     });
 
@@ -64,17 +90,6 @@ const LudoBoard = ({ roomId }) => {
     };
   }, [setGameStatus, gameState, handleError]);
 
-  // Example arrow function (currently unused)
-  const initialPosition = {
-    pieces: {
-      red: ["rh1", "rh2", "rh3", "rh4"],
-      green: ["gh1", "gh2", "gh3", "gh4"],
-      blue: ["bh1", "bh2", "bh3", "bh4"],
-      yellow: ["yh1", "yh2", "yh3", "yh4"],
-    },
-  };
-  console.log(typeof initialPosition.pieces);
-
   function movePieceByColor(color, index) {
     if (socket.id !== currentTurn) {
       console.log("Not your turn!");
@@ -92,7 +107,6 @@ const LudoBoard = ({ roomId }) => {
       pieceIndex: index,
     });
   }
-
   return (
     <>
       <div className="ludoContainer">
@@ -105,7 +119,6 @@ const LudoBoard = ({ roomId }) => {
               <span></span>
             </div>
           </div>
-
           <div className="ludoBox verticalPath" id="p1"></div>
           <div className="ludoBox verticalPath" id="p2"></div>
           <div className="ludoBox verticalPath" id="p3"></div>
@@ -124,7 +137,6 @@ const LudoBoard = ({ roomId }) => {
           <div className="ludoBox verticalPath" id="p16"></div>
           <div className="ludoBox verticalPath greenLudoBox" id="p17"></div>
           <div className="ludoBox verticalPath" id="p18"></div>
-
           <div id="green-Board" className="board">
             <div>
               <span></span>
@@ -133,7 +145,6 @@ const LudoBoard = ({ roomId }) => {
               <span></span>
             </div>
           </div>
-
           <div className="ludoBox horizontalPath" id="p19"></div>
           <div className="ludoBox horizontalPath " id="p20"></div>
           <div className="ludoBox horizontalPath" id="p21"></div>
@@ -152,9 +163,7 @@ const LudoBoard = ({ roomId }) => {
           <div className="ludoBox horizontalPath" id="p34"></div>
           <div className="ludoBox horizontalPath yellowLudoBox" id="p35"></div>
           <div className="ludoBox horizontalPath" id="p36"></div>
-
           <div id="win-Zone"></div>
-
           <div className="ludoBox horizontalPath" id="p37"></div>
           <div className="ludoBox horizontalPath redLudoBox" id="p38"></div>
           <div className="ludoBox horizontalPath" id="p39"></div>
@@ -173,7 +182,6 @@ const LudoBoard = ({ roomId }) => {
           <div className="ludoBox horizontalPath" id="p52"></div>
           <div className="ludoBox horizontalPath " id="p53"></div>
           <div className="ludoBox horizontalPath" id="p54"></div>
-
           <div id="blue-Board" className="board">
             <div>
               <span></span>
@@ -182,7 +190,6 @@ const LudoBoard = ({ roomId }) => {
               <span></span>
             </div>
           </div>
-
           <div className="ludoBox verticalPath" id="p55"></div>
           <div className="ludoBox verticalPath blueLudoBox" id="p56"></div>
           <div className="ludoBox verticalPath" id="p57"></div>
@@ -201,7 +208,6 @@ const LudoBoard = ({ roomId }) => {
           <div className="ludoBox verticalPath" id="p70"></div>
           <div className="ludoBox verticalPath" id="p71"></div>
           <div className="ludoBox verticalPath" id="p72"></div>
-
           <div id="yellow-Board" className="board">
             <div>
               <span></span>
@@ -210,40 +216,24 @@ const LudoBoard = ({ roomId }) => {
               <span></span>
             </div>
           </div>
+          {Object.entries(gameState?.pieces || {}).map(([color, tokens]) =>
+            tokens.map((pos, index) => {
+              const currentPosition = ludoCoordinates[pos];
+              const prevPosition = previousGameState?.pieces?.[color]?.[index]
+                ? ludoCoordinates[previousGameState.pieces[color][index]]
+                : { x: 0, y: 0 };
 
-          {/* {Object.entries(initialPosition.pieces).map(([color, tokens]) =>
-          tokens.map((tokenId) => {
-            const prevToken = previousGameState?.tokens.find(
-              (t) => t.id === tokenId
-            ) || { position: { id: null } };
-
-            const currentPosition = ludoCoordinates[tokenId] || { x: 0, y: 0 };
-            const previousPosition = ludoCoordinates[
-              prevToken.position?.id
-            ] || {
-              x: 0,
-              y: 0,
-            };
-
-            return (
-              <Token
-                key={tokenId}
-                position={currentPosition}
-                color={color}
-                previousPosition={previousPosition}
-              />
-            );
-          })
-        )} */}
-          {["yh1", "yh2", "p70", "yh4"].map((pos, index) => (
-            <Token
-              key={pos}
-              position={pos}
-              color={"yellow"}
-              previousPosition={pos}
-              onClick={() => console.log("tada")}
-            />
-          ))}
+              return (
+                <Token
+                  key={`${color}-${index}`}
+                  position={currentPosition}
+                  color={color}
+                  previousPosition={prevPosition}
+                  onClick={() => movePieceByColor(color, index)}
+                />
+              );
+            })
+          )}
         </div>
       </div>
     </>

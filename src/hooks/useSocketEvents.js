@@ -38,6 +38,11 @@ const useSocketEvents = (roomId) => {
       }
     );
 
+    // Listen for initial game state
+    socket.on("initial_game_state", (gameState) => {
+      console.log("Initial game state received in useSocketEvents:", gameState);
+    });
+
     // listed for while the die is rolling
     socket.on("rolling_dice", () => {
       setIsRolling(true);
@@ -59,6 +64,7 @@ const useSocketEvents = (roomId) => {
       socket.off("connect");
       socket.off("disconnect");
       socket.off("room_update");
+      socket.off("initial_game_state");
       socket.off("roll_dice");
       socket.off("error_message");
     };

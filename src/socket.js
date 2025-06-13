@@ -1,6 +1,8 @@
 import { io } from "socket.io-client";
 
-const socket = io("https://ludo-serverside.onrender.com", {
+// https://ludo-serverside.onrender.com
+
+const socket = io("http://localhost:4002", {
   reconnection: true,
   reconnectionAttempts: Infinity,
   reconnectionDelay: 1000,
@@ -9,6 +11,19 @@ const socket = io("https://ludo-serverside.onrender.com", {
   autoConnect: true,
   transports: ["websocket", "polling"],
   forceNew: true,
+});
+
+// Add connection event listeners for debugging
+socket.on("connect", () => {
+  console.log("Socket connected with ID:", socket.id);
+});
+
+socket.on("connect_error", (error) => {
+  console.error("Socket connection error:", error);
+});
+
+socket.on("disconnect", (reason) => {
+  console.log("Socket disconnected:", reason);
 });
 
 export default socket;
