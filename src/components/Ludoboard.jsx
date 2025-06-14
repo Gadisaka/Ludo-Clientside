@@ -20,6 +20,9 @@ const LudoBoard = ({ roomId }) => {
     },
   });
   const [error, setError] = useState(null);
+  const [newPath, setNewPath] = useState(null);
+  const [step, setStep] = useState(null);
+  const [lastValidPosition, setLastValidPosition] = useState(null);
 
   // Get current player's color
   const playerColor = players.find((p) => p.id === socket.id)?.color;
@@ -32,6 +35,19 @@ const LudoBoard = ({ roomId }) => {
   }, []);
 
   // Listen for initial game state
+  useEffect(() => {
+    socket.on("piece_move_step", ({ color, index, position }) => {
+      setStep({ color, index, position });
+      if (position) {
+        setLastValidPosition(position);
+      }
+      console.log(step, "step");
+    });
+
+    return () => {
+      socket.off("piece_move_step");
+    };
+  }, [step]);
 
   // Listen for game events
   useEffect(() => {
@@ -39,20 +55,8 @@ const LudoBoard = ({ roomId }) => {
 
     socket.on("piece_moved", (pieces) => {
       setGameState(pieces);
-      const updatedPieces = { ...pieces };
-      for (const color in updatedPieces) {
-        for (let i = 0; i < updatedPieces[color].length; i++) {
-          if (updatedPieces[color][i] !== gameState?.pieces?.[color]?.[i]) {
-            const newPosition = ludoCoordinates[updatedPieces[color][i]];
-            const oldPosition =
-              ludoCoordinates[gameState?.pieces?.[color]?.[i]];
-            // Trigger animation for the moved token
-            // Pass the new position as the animation target
-            // You might need to adjust this based on your animation logic
-            // For now, we're just setting the position directly
-          }
-        }
-      }
+      setNewPath(pieces.path);
+      console.log(pieces.path, "jh");
     });
 
     socket.on("piece_killed", ({ color, pieceIndex }) => {
@@ -78,7 +82,7 @@ const LudoBoard = ({ roomId }) => {
       socket.off("piece_finished");
       socket.off("game_over");
     };
-  }, [setGameStatus, gameState, handleError]);
+  }, [setGameStatus, gameState, handleError, newPath]);
 
   function movePieceByColor(color, index) {
     if (socket.id !== currentTurn) {
@@ -208,13 +212,24 @@ const LudoBoard = ({ roomId }) => {
           </div>
           {Object.entries(gameState.pieces).map(([color, tokens]) =>
             tokens.map((pos, index) => {
+              const isStepMatch =
+                step && step.color === color && step.index === index;
+              const shouldResetToPos = isStepMatch && step?.position === pos;
+              // console.log("ggg", step?.position === pos);
+
               return (
                 <Token
                   key={`${color}-${index}`}
-                  position={pos}
+                  position={
+                    shouldResetToPos
+                      ? pos
+                      : isStepMatch
+                      ? step?.position || lastValidPosition
+                      : pos
+                  }
                   color={color}
                   onClick={() => movePieceByColor(color, index)}
-                  animate={pos}
+                  path={newPath}
                 />
               );
             })
