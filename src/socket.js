@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 //https://ludo-serverside.onrender.com
 //http://localhost:4002
 
-const socket = io("http://localhost:4002", {
+const socket = io("https://ludo-serverside.onrender.com", {
   reconnection: true,
   reconnectionAttempts: Infinity,
   reconnectionDelay: 1000,
