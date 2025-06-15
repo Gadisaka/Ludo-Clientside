@@ -1,0 +1,127 @@
+import React, { useEffect, useState } from "react";
+import socket from "../socket";
+import useUserStore from "../store/zutstand";
+import { crown } from "./Dies";
+
+const GameDetails = ({ onClose, onGameStart }) => {
+  const [step, setStep] = useState(1); // 1: stake, 2: pieces, 3: confirmation
+  const [selectedStake, setSelectedStake] = useState(null);
+  const [selectedPieces, setSelectedPieces] = useState(null);
+  const [playerName, setPlayerName] = useState("");
+  const username = useUserStore((state) => state.username);
+  const [error, setError] = useState("");
+
+  const stakeOptions = [20, 30, 40, 50, 100, 200, 500, 1000];
+  const pieceOptions = [1, 2, 3, 4];
+
+  useEffect(() => {
+    if (username) {
+      setPlayerName(username);
+    } else {
+      setPlayerName("Guest");
+    }
+  }, [username]);
+
+  useEffect(() => {
+    // Listen for room creation response
+    socket.on("room_created", ({ roomId }) => {
+      onGameStart(roomId);
+    });
+
+    return () => {
+      socket.off("room_created");
+    };
+  }, [onGameStart]);
+
+  const handleStakeSelect = (stake) => {
+    setSelectedStake(stake);
+    setStep(2);
+  };
+
+  const handlePiecesSelect = (pieces) => {
+    setSelectedPieces(pieces);
+    setStep(3);
+  };
+
+  const handleCreateGame = () => {
+    if (!playerName.trim()) {
+      setError("Please enter your name");
+      console.log(error);
+
+      return;
+    }
+    socket.emit("create_room", {
+      playerName: playerName.trim(),
+      requiredPieces: selectedPieces,
+      stake: selectedStake,
+    });
+  };
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 text-yellow-500 pt-[1px] px-[1px] rounded-t-xl border-l border-r border-t border-transparent bg-gradient-to-r from-red-500 via-blue-500 to-purple-500 animate-gradient-x-border">
+      {step === 1 && (
+        <div className="space-y-4 bg-gray-700 p-4 rounded-t-xl">
+          <h2 className="text-xl font-bold text-center">Select Stake Amount</h2>
+          <div className="grid grid-cols-4 gap-3">
+            {stakeOptions.map((stake) => (
+              <button
+                key={stake}
+                onClick={() => handleStakeSelect(stake)}
+                className="p-3 bg-gray-900  rounded-lg hover:bg-gray-950 transition"
+              >
+                {stake}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="space-y-4 bg-gray-700 p-4 rounded-t-xl py-16">
+          <div className="grid grid-cols-4 gap-3">
+            {pieceOptions.map((pieces) => (
+              <button
+                key={pieces}
+                onClick={() => handlePiecesSelect(pieces)}
+                className="p-3 flex flex-col justify-center items-center bg-gray-900 rounded-lg hover:bg-gray-540 transition"
+              >
+                {crown}
+                {pieces} ባነገሰ
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div className="space-y-4 bg-gray-700 p-4 rounded-t-xl ">
+          <div className="space-x-2 text-center text-2xl gap-12 flex justify-center items-center">
+            <p className="">{selectedStake} ብር </p>
+            <span className="flex flex-col justify-center items-center ">
+              {crown}
+              {selectedPieces} ባነገሰ
+            </span>
+          </div>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={onClose}
+              className="px-6 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleCreateGame}
+              className="px-4 py-1 text-white rounded-xl font-semibold 
+             bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 
+             bg-[length:300%_300%] animate-gradient-x transition-colors duration-300"
+            >
+              Create Game
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default GameDetails;

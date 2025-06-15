@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import socket from "../socket";
 import useUserStore from "../store/zutstand";
+import GameDetails from "./GameDetails";
 
 const GameLobby = ({ onGameStart }) => {
   const [playerName, setPlayerName] = useState("");
@@ -9,6 +10,7 @@ const GameLobby = ({ onGameStart }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(true);
   const username = useUserStore((state) => state.username);
+  const [showGameDetails, setShowGameDetails] = useState(false);
 
   useEffect(() => {
     if (username) {
@@ -74,21 +76,6 @@ const GameLobby = ({ onGameStart }) => {
     };
   }, []);
 
-  const handleCreateGame = () => {
-    if (!playerName.trim()) {
-      setError("Please enter your name");
-      return;
-    }
-    console.log("Creating room with name:", playerName.trim());
-    socket.emit("create_room", { playerName: playerName.trim() });
-
-    // Listen for room creation response
-    socket.once("room_created", ({ roomId }) => {
-      console.log("Room created successfully:", roomId);
-      onGameStart(roomId);
-    });
-  };
-
   const handleJoinGame = (roomId) => {
     if (!playerName.trim()) {
       setError("Please enter your name");
@@ -136,11 +123,8 @@ const GameLobby = ({ onGameStart }) => {
         </div>
         <div className="flex justify-between items-center gap-2 ">
           <button
-            onClick={handleCreateGame}
-            disabled={!isConnected}
-            className={`px-4 py-1 bg-gradient-to-r from-green-400 via-green-500 to-green-700 text-white rounded-full hover:from-green-500 hover:to-green-700 transition-colors ${
-              !isConnected ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            onClick={() => setShowGameDetails(true)}
+            className="px-4 py-2 text-white rounded-2xl font-semibold  bg-gradient-to-r from-green-400 via-green-700 to-green-600 hover:from-green-500  hover:to-green-700 transition-colors"
           >
             New +
           </button>
@@ -230,8 +214,14 @@ const GameLobby = ({ onGameStart }) => {
           </div>
         ) : null}
       </div>
+
+      {showGameDetails && (
+        <GameDetails
+          onClose={() => setShowGameDetails(false)}
+          onGameStart={onGameStart}
+        />
+      )}
     </div>
-    // </div>
   );
 };
 

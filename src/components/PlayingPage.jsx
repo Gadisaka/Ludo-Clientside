@@ -16,6 +16,7 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
     lastRoll,
     error,
     rollDice,
+    gameSettings,
   } = useGame();
 
   useSocketEvents(roomId);
@@ -24,19 +25,31 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
 
   return (
     <div className="text-white flex flex-col w-full h-screen items-center">
-      <div className="w-full max-w-4xl flex justify-between items-center px-4">
-        <button
-          onClick={onLeaveGame}
-          className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-        >
-          Leave Game
-        </button>
-        <p className="text-sm text-gray-300">
-          Room ID: <b>{roomId}</b>
-        </p>
+      <div className="w-full max-w-4xl flex flex-col items-center px-4 space-y-2">
+        <div className="w-full flex justify-between items-center">
+          <button
+            onClick={onLeaveGame}
+            className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+          >
+            Leave Game
+          </button>
+          <p className="text-sm text-gray-300">
+            Room ID: <b>{roomId}</b>
+          </p>
+        </div>
+
+        {/* Game Settings Display */}
+        <div className="flex gap-4 text-sm text-gray-300">
+          <p>
+            Stake: <b>₹{gameSettings?.stake}</b>
+          </p>
+          <p>
+            Required Pieces: <b>{gameSettings?.requiredPieces}</b>
+          </p>
+        </div>
       </div>
 
-      <div className="w-full max-w-xl   rounded-lg">
+      <div className="w-full max-w-xl rounded-lg">
         {lastRoll && (
           <div className="text-center">
             <p>
@@ -67,7 +80,6 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
             }`}
           >
             {player.id === currentTurn && <span>🎲</span>}
-
             <span
               className={`text-white text-2xl font-bold ${
                 player.id === currentTurn ? "text-yellow-500" : ""

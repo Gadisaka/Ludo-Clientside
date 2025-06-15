@@ -4,7 +4,6 @@ import socket from "../socket";
 import { useGame } from "../context/GameContext";
 import useUserStore from "../store/zutstand";
 import Token from "./Token";
-import { ludoBoxCoordinates } from "../constants/constants";
 import { safeZoneStar } from "./Dies";
 
 const LudoBoard = ({ roomId }) => {
@@ -25,6 +24,26 @@ const LudoBoard = ({ roomId }) => {
   const [step, setStep] = useState(null);
   const [lastValidPosition, setLastValidPosition] = useState(null);
 
+  const showWinnerMessage = (data) => {
+    console.log(
+      `Congratulations ${data.name}! You won with ${data.piecesInWinZone}/${data.totalPieces} pieces in the win zone!`
+    );
+  };
+
+  const showLoserMessage = (data) => {
+    console.log(
+      `Game Over ${data.name}! You got ${data.piecesInWinZone}/${data.totalPieces} pieces in the win zone.`
+    );
+  };
+
+  const showGameComparison = (data) => {
+    console.log(
+      `Game Duration: ${Math.floor(
+        data.gameDuration / 1000
+      )} seconds\nRequired Pieces to Win: ${data.requiredPieces}`
+    );
+  };
+
   // Get current player's color
   const playerColor = players.find((p) => p.id === socket.id)?.color;
   setCurrentPlayerColor(playerColor);
@@ -32,6 +51,8 @@ const LudoBoard = ({ roomId }) => {
   // Handle socket errors
   const handleError = useCallback((message) => {
     setError(message);
+    console.log(error);
+
     setTimeout(() => setError(null), 3000); // Clear error after 3 seconds
   }, []);
 
@@ -42,7 +63,7 @@ const LudoBoard = ({ roomId }) => {
       if (position) {
         setLastValidPosition(position);
       }
-      console.log(step, "step");
+      // console.log(step, "step");
     });
 
     return () => {
@@ -65,22 +86,35 @@ const LudoBoard = ({ roomId }) => {
       console.log(`${color} piece ${pieceIndex} was killed!`);
     });
 
-    socket.on("piece_finished", ({ color, pieceIndex }) => {
-      // Show animation or message for finished pieces
-      console.log(`${color} piece ${pieceIndex} has finished!`);
-    });
+    socket.on("game_over", (matchResults) => {
+      const isWinner = matchResults.winner.id === socket.id;
 
-    socket.on("game_over", ({ color }) => {
-      setGameStatus("finished");
-      // Show game over message
-      console.log(`Game over! ${color} player has won!`);
+      if (isWinner) {
+        // Show winner message and stats
+        showWinnerMessage({
+          name: matchResults.winner.name,
+          piecesInWinZone: matchResults.winner.piecesInWinZone,
+          totalPieces: matchResults.winner.totalPieces,
+          gameDuration: matchResults.gameDuration,
+        });
+      } else {
+        // Show loser message and stats
+        showLoserMessage({
+          name: matchResults.loser.name,
+          piecesInWinZone: matchResults.loser.piecesInWinZone,
+          totalPieces: matchResults.loser.totalPieces,
+          gameDuration: matchResults.gameDuration,
+        });
+      }
+
+      // Show comparison of both players' performance
+      showGameComparison(matchResults);
     });
 
     return () => {
       socket.off("error_message");
       socket.off("piece_moved");
       socket.off("piece_killed");
-      socket.off("piece_finished");
       socket.off("game_over");
     };
   }, [setGameStatus, gameState, handleError, newPath]);
