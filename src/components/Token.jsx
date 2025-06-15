@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import "../../public/style.css";
 import { ludoBoxCoordinates } from "../constants/constants";
 
-function Token({ position, color, onClick, animate }) {
+function Token({ position, color, onClick, animate, samePosition }) {
   const [currentPosition, setCurrentPosition] = useState(position);
   const animationFrameRef = useRef(null);
 
@@ -37,9 +37,12 @@ function Token({ position, color, onClick, animate }) {
   const top = ludoBoxCoordinates[position]?.y || 0;
   const left = ludoBoxCoordinates[position]?.x || 0;
 
+  const addedPosition = samePosition ? 8 : 0;
+  // console.log(samePosition, "yerereerere");
+
   const tokenStyle = {
     position: "absolute",
-    left: `${left + 10}px`,
+    left: `${left + 10 + addedPosition}px`,
     top: `${top + 10}px`,
     // top: "40px",
     // left: "218px",
@@ -48,7 +51,8 @@ function Token({ position, color, onClick, animate }) {
 
   return (
     <div
-      className={`fa-solid fa-location-pin piece ${color}-piece`}
+      className={`fa-solid text-[20px]
+      } fa-location-pin piece ${color}-piece`}
       onClick={() => onClick(position)}
       style={tokenStyle}
     ></div>

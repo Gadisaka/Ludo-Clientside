@@ -155,4 +155,8 @@ export const ludoBoxCoordinates = {
   yh2: { x: 208, y: 205 },
   yh3: { x: 208, y: 245 },
   yh4: { x: 248, y: 245 },
+  blueWinZone: { x: 141, y: 154 },
+  greenWinZone: { x: 141, y: 124 },
+  redWinZone: { x: 125, y: 140 },
+  yellowWinZone: { x: 158, y: 140 },
 };

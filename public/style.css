@@ -112,6 +112,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  border: 1px solid #6b6b6b;
 }
 
 .board div {
@@ -123,6 +124,7 @@ body {
   grid-template-rows: 1fr 1fr;
   align-items: center;
   justify-items: center;
+  border: 1px solid #6b6b6b;
 }
 
 .board div span {
@@ -219,7 +221,7 @@ body {
   /* top: 50%;
   left: 50%; */
   transform: translate(-50%, -90%);
-  font-size: 24px;
+
   z-index: 100;
 }
 
@@ -240,11 +242,9 @@ body {
 }
 .red-piece {
   color: var(--red);
-  z-index: 100;
 }
 .blue-piece {
   color: var(--blue);
-  z-index: 100;
 }
 .green-piece {
   color: var(--green);
@@ -556,11 +556,33 @@ body {
   top: 279px;
   left: 124px;
 }
+
 #p71 {
   top: 279px;
   left: 141px;
 }
+
 #p72 {
   top: 279px;
+  left: 158px;
+}
+
+#blueWinZone {
+  top: 154px;
+  left: 141px;
+}
+
+#greenWinZone {
+  top: 124px;
+  left: 141px;
+}
+
+#redWinZone {
+  top: 140px;
+  left: 125px;
+}
+
+#yellowWinZone {
+  top: 140px;
   left: 158px;
 }

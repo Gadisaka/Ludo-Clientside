@@ -5,6 +5,7 @@ import { useGame } from "../context/GameContext";
 import useUserStore from "../store/zutstand";
 import Token from "./Token";
 import { ludoBoxCoordinates } from "../constants/constants";
+import { safeZoneStar } from "./Dies";
 
 const LudoBoard = ({ roomId }) => {
   const { currentTurn, players, setGameStatus } = useGame();
@@ -56,7 +57,7 @@ const LudoBoard = ({ roomId }) => {
     socket.on("piece_moved", (pieces) => {
       setGameState(pieces);
       setNewPath(pieces.path);
-      console.log(pieces.path, "jh");
+      // console.log(pieces.path, "jh");
     });
 
     socket.on("piece_killed", ({ color, pieceIndex }) => {
@@ -101,6 +102,19 @@ const LudoBoard = ({ roomId }) => {
       pieceIndex: index,
     });
   }
+
+  let positions = [];
+  function isInSamePosition(pos) {
+    if (pos === null) return false;
+    if (positions.some((p) => p === pos)) {
+      positions.push(pos);
+      return true;
+    } else {
+      positions.push(pos);
+      return false;
+    }
+  }
+
   return (
     <>
       <div className="ludoContainer">
@@ -114,12 +128,28 @@ const LudoBoard = ({ roomId }) => {
             </div>
           </div>
           <div className="ludoBox verticalPath" id="p1"></div>
-          <div className="ludoBox verticalPath" id="p2"></div>
+          <div className="ludoBox verticalPath" id="p2">
+            <svg
+              width="14px"
+              height="14px"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="rotate-180 mt-1"
+            >
+              <path
+                d="M6 8L2 8L2 6L8 5.24536e-07L14 6L14 8L10 8L10 16L6 16L6 8Z"
+                fill="#009A2A"
+              />
+            </svg>
+          </div>
           <div className="ludoBox verticalPath" id="p3"></div>
           <div className="ludoBox verticalPath" id="p4"></div>
           <div className="ludoBox verticalPath greenLudoBox" id="p5"></div>
           <div className="ludoBox verticalPath greenLudoBox" id="p6"></div>
-          <div className="ludoBox verticalPath" id="p7"></div>
+          <div className="ludoBox verticalPath" id="p7">
+            <span className="ml-0.5 mt-1 ">{safeZoneStar}</span>
+          </div>
           <div className="ludoBox verticalPath greenLudoBox" id="p8"></div>
           <div className="ludoBox verticalPath" id="p9"></div>
           <div className="ludoBox verticalPath" id="p10"></div>
@@ -140,12 +170,28 @@ const LudoBoard = ({ roomId }) => {
             </div>
           </div>
           <div className="ludoBox horizontalPath" id="p19"></div>
-          <div className="ludoBox horizontalPath " id="p20"></div>
+          <div className="ludoBox horizontalPath " id="p20">
+            <svg
+              width="14px"
+              height="14px"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="rotate-270 ml-1"
+            >
+              <path
+                d="M6 8L2 8L2 6L8 5.24536e-07L14 6L14 8L10 8L10 16L6 16L6 8Z"
+                fill="#FEE800"
+              />
+            </svg>
+          </div>
           <div className="ludoBox horizontalPath" id="p21"></div>
           <div className="ludoBox horizontalPath" id="p22"></div>
           <div className="ludoBox horizontalPath yellowLudoBox" id="p23"></div>
           <div className="ludoBox horizontalPath yellowLudoBox" id="p24"></div>
-          <div className="ludoBox horizontalPath " id="p25"></div>
+          <div className="ludoBox horizontalPath" id="p25">
+            <span className="ml-1">{safeZoneStar}</span>
+          </div>
           <div className="ludoBox horizontalPath  yellowLudoBox" id="p26"></div>
           <div className="ludoBox horizontalPath  " id="p27"></div>
           <div className="ludoBox horizontalPath  " id="p28"></div>
@@ -157,14 +203,63 @@ const LudoBoard = ({ roomId }) => {
           <div className="ludoBox horizontalPath" id="p34"></div>
           <div className="ludoBox horizontalPath yellowLudoBox" id="p35"></div>
           <div className="ludoBox horizontalPath" id="p36"></div>
-          <div id="win-Zone"></div>
+          <div id="win-Zone" className="relative">
+            <div
+              className="absolute w-full h-full"
+              style={{
+                clipPath: "polygon(0% 0%, 50% 50%, 0% 100%)",
+                backgroundColor: "#FA0000",
+              }}
+            ></div>
+
+            {/* Top-Right: Green Triangle */}
+            <div
+              className="absolute w-full h-full"
+              style={{
+                clipPath: "polygon(0% 0%, 100% 0%, 50% 50%)",
+                backgroundColor: "#009A2A",
+              }}
+            ></div>
+
+            {/* Bottom-Right: Yellow Triangle */}
+            <div
+              className="absolute w-full h-full"
+              style={{
+                clipPath: "polygon(50% 50%, 100% 0%, 100% 100%)",
+                backgroundColor: "#FEE800",
+              }}
+            ></div>
+
+            {/* Bottom-Left: Blue Triangle */}
+            <div
+              className="absolute w-full h-full"
+              style={{
+                clipPath: "polygon(0% 100%, 50% 50%, 100% 100%)",
+                backgroundColor: "#00ACFF",
+              }}
+            ></div>
+          </div>
           <div className="ludoBox horizontalPath" id="p37"></div>
           <div className="ludoBox horizontalPath redLudoBox" id="p38"></div>
           <div className="ludoBox horizontalPath" id="p39"></div>
           <div className="ludoBox horizontalPath" id="p40"></div>
           <div className="ludoBox horizontalPath" id="p41"></div>
           <div className="ludoBox horizontalPath" id="p42"></div>
-          <div className="ludoBox horizontalPath " id="p43"></div>
+          <div className="ludoBox horizontalPath " id="p43">
+            <svg
+              width="14px"
+              height="14px"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="rotate-90 ml-1"
+            >
+              <path
+                d="M6 8L2 8L2 6L8 5.24536e-07L14 6L14 8L10 8L10 16L6 16L6 8Z"
+                fill="#FA0000"
+              />
+            </svg>
+          </div>
           <div className="ludoBox horizontalPath redLudoBox" id="p44"></div>
           <div className="ludoBox horizontalPath redLudoBox" id="p45"></div>
           <div className="ludoBox horizontalPath redLudoBox" id="p46"></div>
@@ -172,7 +267,9 @@ const LudoBoard = ({ roomId }) => {
           <div className="ludoBox horizontalPath redLudoBox" id="p48"></div>
           <div className="ludoBox horizontalPath" id="p49"></div>
           <div className="ludoBox horizontalPath" id="p50"></div>
-          <div className="ludoBox horizontalPath" id="p51"></div>
+          <div className="ludoBox horizontalPath" id="p51">
+            <span className="ml-1">{safeZoneStar}</span>
+          </div>
           <div className="ludoBox horizontalPath" id="p52"></div>
           <div className="ludoBox horizontalPath " id="p53"></div>
           <div className="ludoBox horizontalPath" id="p54"></div>
@@ -195,12 +292,28 @@ const LudoBoard = ({ roomId }) => {
           <div className="ludoBox verticalPath" id="p63"></div>
           <div className="ludoBox verticalPath" id="p64"></div>
           <div className="ludoBox verticalPath blueLudoBox" id="p65"></div>
-          <div className="ludoBox verticalPath" id="p66"></div>
+          <div className="ludoBox verticalPath" id="p66">
+            <span className="ml-0.5 mt-1 ">{safeZoneStar}</span>
+          </div>
           <div className="ludoBox verticalPath blueLudoBox" id="p67"></div>
           <div className="ludoBox verticalPath blueLudoBox" id="p68"></div>
           <div className="ludoBox verticalPath" id="p69"></div>
           <div className="ludoBox verticalPath" id="p70"></div>
-          <div className="ludoBox verticalPath" id="p71"></div>
+          <div className="ludoBox verticalPath" id="p71">
+            <svg
+              width="14px"
+              height="14px"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="mt-1"
+            >
+              <path
+                d="M6 8L2 8L2 6L8 5.24536e-07L14 6L14 8L10 8L10 16L6 16L6 8Z"
+                fill="#00ACFF"
+              />
+            </svg>
+          </div>
           <div className="ludoBox verticalPath" id="p72"></div>
           <div id="yellow-Board" className="board">
             <div>
@@ -230,6 +343,7 @@ const LudoBoard = ({ roomId }) => {
                   color={color}
                   onClick={() => movePieceByColor(color, index)}
                   path={newPath}
+                  samePosition={isInSamePosition(pos)}
                 />
               );
             })
