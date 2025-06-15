@@ -41,7 +41,7 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
         {/* Game Settings Display */}
         <div className="flex gap-4 text-sm text-gray-300">
           <p>
-            Stake: <b>₹{gameSettings?.stake}</b>
+            Stake: <b>{gameSettings?.stake}</b>
           </p>
           <p>
             Required Pieces: <b>{gameSettings?.requiredPieces}</b>
