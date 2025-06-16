@@ -174,11 +174,11 @@ const GameLobby = ({ onGameStart }) => {
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
         <div className="flex flex-col gap-4"></div>
-        {isConnected && availableGames.length > 0 ? (
+        {isConnected && availableGames?.length > 0 ? (
           <>
             <h2 className="text-xl text-white mb-2">Available Games:</h2>
             <div className="space-y-3">
-              {availableGames.map((game) => (
+              {availableGames?.map((game) => (
                 <div
                   key={game.roomId}
                   className="p-[1px] rounded-xl border border-transparent bg-gradient-to-r from-red-500     via-blue-500 to-purple-500 animate-gradient-x-border"
