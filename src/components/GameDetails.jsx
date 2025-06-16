@@ -10,6 +10,7 @@ const GameDetails = ({ onClose, onGameStart }) => {
   const [playerName, setPlayerName] = useState("");
   const username = useUserStore((state) => state.username);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoadign] = useState(false);
 
   const stakeOptions = [20, 30, 40, 50, 100, 200, 500, 1000];
   const pieceOptions = [1, 2, 3, 4];
@@ -50,6 +51,7 @@ const GameDetails = ({ onClose, onGameStart }) => {
 
       return;
     }
+    setIsLoadign(true);
     socket.emit("create_room", {
       playerName: playerName.trim(),
       requiredPieces: selectedPieces,
@@ -111,11 +113,12 @@ const GameDetails = ({ onClose, onGameStart }) => {
             </button>
             <button
               onClick={handleCreateGame}
+              disabled={isLoading}
               className="px-4 py-1 text-white rounded-xl font-semibold 
              bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 
              bg-[length:300%_300%] animate-gradient-x transition-colors duration-300"
             >
-              Create Game
+              {isLoading ? "Creating..." : "Create Game"}
             </button>
           </div>
         </div>

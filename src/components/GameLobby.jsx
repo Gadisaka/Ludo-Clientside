@@ -173,54 +173,63 @@ const GameLobby = ({ onGameStart }) => {
 
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
-        <div className="flex flex-col gap-4"></div>
-        {isConnected && availableGames?.length > 0 ? (
-          <>
-            <h2 className="text-xl text-white mb-2">Available Games:</h2>
-            <div className="space-y-3">
-              {availableGames?.map((game) => (
-                <div
-                  key={game.roomId}
-                  className="p-[1px] rounded-xl border border-transparent bg-gradient-to-r from-red-500     via-blue-500 to-purple-500 animate-gradient-x-border"
-                >
-                  <div className="flex items-center justify-between bg-gray-700 p-4 rounded-xl">
-                    <div className="text-white">
-                      <p>
-                        <span className="text-yellow-500 font-bold ">
-                          Host:
-                        </span>{" "}
-                        {game.hostName}
-                      </p>
-                      <p className="text-sm text-gray-300">
-                        Players: {game.playerCount}/2
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleJoinGame(game.roomId)}
-                      className="px-4 py-1 text-white rounded-full font-semibold 
-             bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 
-             bg-[length:300%_300%] animate-gradient-x transition-colors duration-300"
+        <div className="flex flex-col gap-4">
+          {isConnected ? (
+            availableGames && availableGames.length > 0 ? (
+              <>
+                <h2 className="text-xl text-white mb-2">Available Games:</h2>
+                <div className="space-y-3">
+                  {availableGames.map((game) => (
+                    <div
+                      key={game.roomId}
+                      className="p-[1px] rounded-xl border border-transparent bg-gradient-to-r from-red-500 via-blue-500 to-purple-500 animate-gradient-x-border"
                     >
-                      Join Game
-                    </button>
-                  </div>
+                      <div className="flex items-center justify-between bg-gray-700 p-4 rounded-xl">
+                        <div className="text-white">
+                          <p>
+                            <span className="text-yellow-500 font-bold">
+                              Host:
+                            </span>{" "}
+                            {game.hostName}
+                          </p>
+                          <p className="text-sm text-gray-300">
+                            Players: {game.playerCount}/2
+                          </p>
+                          <p className="text-sm text-gray-300">
+                            Stake: {game.stake}
+                          </p>
+                          <p className="text-sm text-gray-300">
+                            Required Pieces: {game.requiredPieces}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleJoinGame(game.roomId)}
+                          className="px-4 py-1 text-white rounded-full font-semibold 
+                          bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 
+                          bg-[length:300%_300%] animate-gradient-x transition-colors duration-300"
+                        >
+                          Join Game
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </>
-        ) : isConnected ? (
-          <div className="text-center text-gray-300 ">
-            No available games. Create one to start playing!
-          </div>
-        ) : null}
-      </div>
+              </>
+            ) : (
+              <div className="text-center text-gray-300">
+                No available games. Create one to start playing!
+              </div>
+            )
+          ) : null}
+        </div>
 
-      {showGameDetails && (
-        <GameDetails
-          onClose={() => setShowGameDetails(false)}
-          onGameStart={onGameStart}
-        />
-      )}
+        {showGameDetails && (
+          <GameDetails
+            onClose={() => setShowGameDetails(false)}
+            onGameStart={onGameStart}
+          />
+        )}
+      </div>
     </div>
   );
 };

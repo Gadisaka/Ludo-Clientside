@@ -3,6 +3,8 @@ import { io } from "socket.io-client";
 //https://ludo-serverside.onrender.com
 //http://localhost:4002
 
+const token = localStorage.getItem("token"); // Get token from localStorage
+
 const socket = io("https://ludo-serverside.onrender.com", {
   reconnection: true,
   reconnectionAttempts: Infinity,
@@ -12,6 +14,9 @@ const socket = io("https://ludo-serverside.onrender.com", {
   autoConnect: true,
   transports: ["websocket", "polling"],
   forceNew: true,
+  auth: {
+    token: token, // Include token in socket connection
+  },
 });
 
 // Add connection event listeners for debugging

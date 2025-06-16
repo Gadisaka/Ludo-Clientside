@@ -38,6 +38,28 @@ const useSocketEvents = (roomId) => {
       }
     );
 
+    // Listen for game status changes
+    socket.on("game_status_changed", ({ status, message }) => {
+      setGameStatus(status);
+      setError(message);
+      // Clear the message after 5 seconds
+      setTimeout(() => setError(""), 5000);
+    });
+
+    // Listen for player disconnection
+    socket.on("player_disconnected", ({ playerName, timeout }) => {
+      setError(
+        `${playerName} has disconnected. They have ${timeout} seconds to reconnect.`
+      );
+    });
+
+    // Listen for player reconnection
+    socket.on("player_reconnected", ({ playerName }) => {
+      setError(`${playerName} has reconnected!`);
+      // Clear the error message after 3 seconds
+      setTimeout(() => setError(""), 3000);
+    });
+
     // listed for while the die is rolling
     socket.on("rolling_dice", () => {
       setIsRolling(true);
@@ -61,6 +83,9 @@ const useSocketEvents = (roomId) => {
       socket.off("room_update");
       socket.off("roll_dice");
       socket.off("error_message");
+      socket.off("player_disconnected");
+      socket.off("player_reconnected");
+      socket.off("game_status_changed");
     };
   }, [roomId]);
 };
