@@ -26,7 +26,7 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:4002/auth/login",
+        "https://ludo-serverside.onrender.com/auth/login",
         formData
       );
       localStorage.setItem("token", response.data.token);
