@@ -5,6 +5,8 @@ import { useGame } from "../context/GameContext";
 import useUserStore from "../store/zutstand";
 import Token from "./Token";
 import { safeZoneStar } from "./Dies";
+import GameResult from "./GameResult";
+import { useNavigate } from "react-router-dom";
 
 const LudoBoard = ({ roomId }) => {
   const { currentTurn, players, setGameStatus } = useGame();
@@ -23,30 +25,14 @@ const LudoBoard = ({ roomId }) => {
   const [newPath, setNewPath] = useState(null);
   const [step, setStep] = useState(null);
   const [lastValidPosition, setLastValidPosition] = useState(null);
-
-  const showWinnerMessage = (data) => {
-    console.log(
-      `Congratulations ${data.name}! You won with ${data.piecesInWinZone}/${data.totalPieces} pieces in the win zone!`
-    );
-  };
-
-  const showLoserMessage = (data) => {
-    console.log(
-      `Game Over ${data.name}! You got ${data.piecesInWinZone}/${data.totalPieces} pieces in the win zone.`
-    );
-  };
-
-  const showGameComparison = (data) => {
-    console.log(
-      `Game Duration: ${Math.floor(
-        data.gameDuration / 1000
-      )} seconds\nRequired Pieces to Win: ${data.requiredPieces}`
-    );
-  };
+  const [gameResult, setGameResult] = useState(null);
+  const [matchResults, setMatchResults] = useState(null);
 
   // Get current player's color
   const playerColor = players.find((p) => p.id === socket.id)?.color;
   setCurrentPlayerColor(playerColor);
+
+  const navigate = useNavigate();
 
   // Handle socket errors
   const handleError = useCallback((message) => {
@@ -56,6 +42,12 @@ const LudoBoard = ({ roomId }) => {
     setTimeout(() => setError(null), 3000); // Clear error after 3 seconds
   }, []);
 
+  // Check if position is in win zone
+  const isWinZone = (position, color) => {
+    // Check if position starts with 'w' (win zone positions)
+    return position && position.startsWith(`${color}WinZone`);
+  };
+
   // Listen for initial game state
   useEffect(() => {
     socket.on("piece_move_step", ({ color, index, position }) => {
@@ -63,13 +55,26 @@ const LudoBoard = ({ roomId }) => {
       if (position) {
         setLastValidPosition(position);
       }
-      // console.log(step, "step");
     });
 
     return () => {
       socket.off("piece_move_step");
     };
   }, [step]);
+
+  // Effect to handle game result when piece reaches win zone
+  useEffect(() => {
+    if (step && isWinZone(step.position, step.color) && matchResults) {
+      const isWinner = matchResults.winner.id === socket.id;
+      setGameResult({
+        isWinner,
+        winner: matchResults.winner,
+        loser: matchResults.loser,
+        gameDuration: matchResults.gameDuration,
+        requiredPieces: matchResults.requiredPieces,
+      });
+    }
+  }, [step, matchResults]);
 
   // Listen for game events
   useEffect(() => {
@@ -78,37 +83,14 @@ const LudoBoard = ({ roomId }) => {
     socket.on("piece_moved", (pieces) => {
       setGameState(pieces);
       setNewPath(pieces.path);
-      // console.log(pieces.path, "jh");
     });
 
     socket.on("piece_killed", ({ color, pieceIndex }) => {
-      // Animation or message for killed pieces
       console.log(`${color} piece ${pieceIndex} was killed!`);
     });
 
-    socket.on("game_over", (matchResults) => {
-      const isWinner = matchResults.winner.id === socket.id;
-
-      if (isWinner) {
-        // Show winner message and stats
-        showWinnerMessage({
-          name: matchResults.winner.name,
-          piecesInWinZone: matchResults.winner.piecesInWinZone,
-          totalPieces: matchResults.winner.totalPieces,
-          gameDuration: matchResults.gameDuration,
-        });
-      } else {
-        // Show loser message and stats
-        showLoserMessage({
-          name: matchResults.loser.name,
-          piecesInWinZone: matchResults.loser.piecesInWinZone,
-          totalPieces: matchResults.loser.totalPieces,
-          gameDuration: matchResults.gameDuration,
-        });
-      }
-
-      // Show comparison of both players' performance
-      showGameComparison(matchResults);
+    socket.on("game_over", (results) => {
+      setMatchResults(results);
     });
 
     return () => {
@@ -118,6 +100,13 @@ const LudoBoard = ({ roomId }) => {
       socket.off("game_over");
     };
   }, [setGameStatus, gameState, handleError, newPath]);
+
+  const handleTryAgain = () => {
+    setGameResult(null);
+    setMatchResults(null);
+    socket.emit("leave_room", { roomId });
+    navigate("/");
+  };
 
   function movePieceByColor(color, index) {
     if (socket.id !== currentTurn) {
@@ -362,7 +351,6 @@ const LudoBoard = ({ roomId }) => {
               const isStepMatch =
                 step && step.color === color && step.index === index;
               const shouldResetToPos = isStepMatch && step?.position === pos;
-              // console.log("ggg", step?.position === pos);
 
               return (
                 <Token
@@ -384,6 +372,9 @@ const LudoBoard = ({ roomId }) => {
           )}
         </div>
       </div>
+      {gameResult && (
+        <GameResult result={gameResult} onTryAgain={handleTryAgain} />
+      )}
     </>
   );
 };
