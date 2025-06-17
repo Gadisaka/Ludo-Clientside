@@ -28,10 +28,8 @@ const GameResult = ({ result, onTryAgain }) => {
             </p>
             <div className="bg-gray-700/50 p-4 rounded-lg space-y-2">
               <p className="text-gray-300">
-                Pieces in win zone:{" "}
-                <span className="text-white font-semibold">
-                  {playerData.piecesInWinZone}/{playerData.totalPieces}
-                </span>
+                Prize:{" "}
+                <span className="text-white font-semibold">{result.stake}</span>
               </p>
               <p className="text-gray-300">
                 Game duration:{" "}

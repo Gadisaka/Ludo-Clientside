@@ -1,8 +1,5 @@
 import img from "../assets/ludoimage.png";
 import { Link } from "react-router-dom";
-import ChooseAvatar from "../components/ChooseAvatar";
-import useUserStore from "../store/zutstand";
-import { useEffect, useState } from "react";
 
 const balance = 23.0;
 const recentRooms = [
@@ -18,21 +15,10 @@ const leaderboard = [
 ];
 
 function Home() {
-  const { avatar, username, age } = useUserStore();
-  const [forceOpen, setForceOpen] = useState(false);
-
-  useEffect(() => {
-    if (!avatar || !username || !age) {
-      setForceOpen(true);
-    }
-  }, [avatar, username, age]);
-
   return (
     <div className="min-h-screen w-full flex flex-col md:flex-row items-start p-5 bg-gray-900 gap-5">
       {/* 🟣 Sidebar Neon Panel */}
-      {forceOpen && (
-        <ChooseAvatar open={true} onClose={() => setForceOpen(false)} />
-      )}
+
       <aside className="w-full md:w-1/4 bg-white/5 backdrop-blur-md rounded-xl shadow-lg p-4 border border-purple-500/40">
         <h2 className="text-purple-300 font-semibold text-lg mb-2">
           Leaderboard

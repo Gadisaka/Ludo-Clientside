@@ -5,7 +5,7 @@ import {
   Routes,
   Navigate,
 } from "react-router-dom";
-import Navbar from "./components/Navbar";
+// import Navbar from "./components/Navbar";
 import Game from "./page/Game";
 import Home from "./page/Home";
 import Login from "./page/auth/Login";
@@ -25,10 +25,10 @@ const App = () => {
   return (
     <div>
       <Router>
-        {window.location.pathname === "/login" ||
+        {/* {window.location.pathname === "/login" ||
         window.location.pathname === "/register" ? null : (
           <Navbar />
-        )}
+        )} */}
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route

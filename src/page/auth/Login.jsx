@@ -3,12 +3,17 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
+    username: "",
     phone: "",
     password: "",
+    confirmPassword: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [passwordMatch, setPasswordMatch] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -17,6 +22,20 @@ const Login = () => {
       ...prevState,
       [name]: value,
     }));
+
+    // Show confirm password field when password is being typed
+    if (name === "password") {
+      setShowConfirmPassword(value.length > 0);
+    }
+
+    // Check password match in real-time
+    if (name === "confirmPassword" || name === "password") {
+      if (name === "confirmPassword") {
+        setPasswordMatch(value === formData.password);
+      } else {
+        setPasswordMatch(value === formData.confirmPassword);
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -25,19 +44,51 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "https://ludo-serverside.onrender.com/auth/login",
-        formData
-      );
-      localStorage.setItem("token", response.data.token);
-      navigate("/");
+      if (isLogin) {
+        // Login logic
+        const response = await axios.post(
+          "https://ludo-serverside.onrender.com/auth/login",
+          {
+            phone: formData.phone,
+            password: formData.password,
+            role: "PLAYER",
+          }
+        );
+        localStorage.setItem("token", response.data.token);
+        navigate("/");
+      } else {
+        // Signup logic
+        if (!passwordMatch) {
+          setError("Passwords do not match");
+          setLoading(false);
+          return;
+        }
+
+        await axios.post("https://ludo-serverside.onrender.com/auth/register", {
+          username: formData.username,
+          phone: formData.phone,
+          password: formData.password,
+        });
+        navigate("/");
+      }
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Login failed. Please try again."
-      );
+      setError(err.response?.data?.message || "Please try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleMode = () => {
+    setIsLogin(!isLogin);
+    setError("");
+    setFormData({
+      username: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+    });
+    setShowConfirmPassword(false);
+    setPasswordMatch(false);
   };
 
   return (
@@ -45,7 +96,7 @@ const Login = () => {
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Login
+            {isLogin ? "Login" : "Sign Up"}
           </h2>
         </div>
         {error && (
@@ -72,6 +123,26 @@ const Login = () => {
         )}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">
+            {!isLogin && (
+              <div>
+                <label
+                  htmlFor="username"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Username
+                </label>
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  required
+                  className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                  placeholder="Enter your username"
+                  value={formData.username}
+                  onChange={handleChange}
+                />
+              </div>
+            )}
             <div>
               <label
                 htmlFor="phone"
@@ -108,14 +179,41 @@ const Login = () => {
                 onChange={handleChange}
               />
             </div>
+            {!isLogin && showConfirmPassword && (
+              <div>
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Confirm Password
+                </label>
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  required
+                  className={`appearance-none relative block w-full px-3 py-2 border ${
+                    !passwordMatch ? "border-red-300" : "border-gray-300"
+                  } placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
+                  placeholder="Confirm your password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                />
+                {!passwordMatch && (
+                  <p className="mt-1 text-sm text-red-600">
+                    Passwords do not match
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           <div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (!isLogin && !passwordMatch)}
               className={`group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white ${
-                loading
+                loading || (!isLogin && !passwordMatch)
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               }`}
@@ -142,14 +240,27 @@ const Login = () => {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  Logging in...
+                  {isLogin ? "Logging in..." : "Signing up..."}
                 </span>
-              ) : (
+              ) : isLogin ? (
                 "Login"
+              ) : (
+                "Sign Up"
               )}
             </button>
           </div>
         </form>
+
+        <div className="text-center mt-4">
+          <button
+            onClick={toggleMode}
+            className="text-sm text-blue-600 hover:text-blue-500"
+          >
+            {isLogin
+              ? "Don't have an account? Sign up"
+              : "Already have an account? Login"}
+          </button>
+        </div>
       </div>
     </div>
   );

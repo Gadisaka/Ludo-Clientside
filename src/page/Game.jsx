@@ -1,9 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PlayingPage from "../components/PlayingPage";
 import GameLobby from "../components/GameLobby";
 
 const Game = () => {
   const [currentRoom, setCurrentRoom] = useState(null);
+
+  useEffect(() => {
+    // Check if we've already reloaded
+    const hasReloaded = localStorage.getItem("gamePageReloaded");
+
+    if (!hasReloaded) {
+      // Set the flag before reloading
+      localStorage.setItem("gamePageReloaded", "true");
+      window.location.reload();
+    } else {
+      // Clear the flag for next time
+    }
+  }, []); // Empty dependency array means this runs once when component mounts
 
   const handleGameStart = (roomId) => {
     setCurrentRoom(roomId);
