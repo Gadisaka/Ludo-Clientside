@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import "../../public/style.css";
 import { ludoBoxCoordinates } from "../constants/constants";
+import Slider from "@mui/material/Slider";
 
-function Token({ position, color, onClick, animate, samePosition }) {
+function Token({ position, color, onClick, animate, samePosition, isMovable }) {
   const [currentPosition, setCurrentPosition] = useState(position);
   const animationFrameRef = useRef(null);
 
@@ -40,6 +41,8 @@ function Token({ position, color, onClick, animate, samePosition }) {
   const addedPosition = samePosition ? 8 : 0;
   // console.log(samePosition, "yerereerere");
 
+  // Blinking background for movable tokens
+
   const tokenStyle = {
     position: "absolute",
     left: `${left + 10 + addedPosition}px`,
@@ -50,12 +53,24 @@ function Token({ position, color, onClick, animate, samePosition }) {
   };
 
   return (
-    <div
-      className={`fa-solid text-[20px]
-      } fa-location-pin piece ${color}-piece`}
-      onClick={() => onClick(position)}
-      style={tokenStyle}
-    ></div>
+    <div style={tokenStyle}>
+      <div
+        className={` fa-solid text-[20px]
+        } fa-location-pin piece ${color}-piece`}
+        onClick={() => onClick(position)}
+      ></div>
+      <div className="w-5 h-5 rounded-full absolute left-1/2 top-[-7px] transform -translate-x-1/2">
+        {/* Spinning Border Layer */}
+        <div
+          className={`w-full h-full rounded-full  border-dashed border-gray-800 ${
+            isMovable ? "animate-spin border-2" : ""
+          }`}
+        ></div>
+
+        {/* Static Inner Circle */}
+        <div className="w-4 h-4 rounded-full border-3 border-red-900 absolute left-1/2 top-[2px] transform -translate-x-1/2"></div>
+      </div>
+    </div>
   );
 }
 

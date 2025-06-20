@@ -7,9 +7,17 @@ import Token from "./Token";
 import { safeZoneStar } from "./Dies";
 import GameResult from "./GameResult";
 import { useNavigate } from "react-router-dom";
+import { paths } from "../logic/ludoPaths";
 
 const LudoBoard = ({ roomId }) => {
-  const { currentTurn, players, setGameStatus } = useGame();
+  const {
+    currentTurn,
+    players,
+    setGameStatus,
+    value: diceValue,
+    isRolling,
+    lastRoll,
+  } = useGame();
   const setCurrentPlayerColor = useUserStore(
     (state) => state.setCurrentPlayerColor
   );
@@ -33,6 +41,22 @@ const LudoBoard = ({ roomId }) => {
   setCurrentPlayerColor(playerColor);
 
   const navigate = useNavigate();
+
+  // Helper to get the color of the current turn
+  const currentTurnColor = players.find((p) => p.id === currentTurn)?.color;
+  const isMyTurn = socket.id === currentTurn;
+
+  // Debug: Log socket.id, currentTurn, isMyTurn
+  useEffect(() => {
+    console.log(
+      "Socket ID:",
+      socket.id,
+      "CurrentTurn:",
+      currentTurn,
+      "isMyTurn:",
+      isMyTurn
+    );
+  }, [socket.id, currentTurn, isMyTurn]);
 
   // Handle socket errors
   const handleError = useCallback((message) => {
@@ -137,12 +161,61 @@ const LudoBoard = ({ roomId }) => {
       return false;
     }
   }
+  function getMovableTokens(color) {
+    const tokens = gameState.pieces[color] || [];
+    const path = color && paths[color];
+    if (!path) return [];
+    let movable = [];
+    tokens.forEach((pos, idx) => {
+      const isHome =
+        pos.endsWith("h1") ||
+        pos.endsWith("h2") ||
+        pos.endsWith("h3") ||
+        pos.endsWith("h4");
+      if (isHome) {
+        if (diceValue === 6) movable.push(idx);
+        return;
+      }
+      // If in win zone, skip
+      if (pos.startsWith(color + "WinZone")) return;
+      // Find current index in path
+      const pathIdx = path.indexOf(pos);
+      if (pathIdx === -1) return;
+      // Check if move stays in path
+      if (pathIdx + diceValue < path.length) {
+        movable.push(idx);
+      }
+    });
+    return movable;
+  }
+
+  // Auto-move effect
+  useEffect(() => {
+    if (!playerColor || socket.id !== currentTurn || isRolling) return;
+    const movable = getMovableTokens(playerColor);
+    if (movable.length === 1) {
+      // Only one move, auto-move it
+      movePieceByColor(playerColor, movable[0]);
+    }
+  }, [diceValue, currentTurn, playerColor, gameState, isRolling]);
+
+  // Only allow movable tokens if it's my turn AND I have rolled the dice
+  const hasRolled = lastRoll && lastRoll.roller === socket.id;
+  const movableTokenIndices =
+    isMyTurn && hasRolled && playerColor ? getMovableTokens(playerColor) : [];
 
   return (
     <>
       <div className="ludoContainer">
         <div id="ludoBoard">
-          <div id="red-Board" className="board">
+          <div
+            id="red-Board"
+            className={`board ${
+              isMyTurn && currentTurnColor === "red"
+                ? "bg-red-700 animate-blink"
+                : ""
+            }`}
+          >
             <div>
               <span></span>
               <span></span>
@@ -184,7 +257,14 @@ const LudoBoard = ({ roomId }) => {
           <div className="ludoBox verticalPath" id="p16"></div>
           <div className="ludoBox verticalPath greenLudoBox" id="p17"></div>
           <div className="ludoBox verticalPath" id="p18"></div>
-          <div id="green-Board" className="board">
+          <div
+            id="green-Board"
+            className={`board ${
+              isMyTurn && currentTurnColor === "green"
+                ? "bg-green-700 animate-blink"
+                : ""
+            }`}
+          >
             <div>
               <span></span>
               <span></span>
@@ -296,7 +376,14 @@ const LudoBoard = ({ roomId }) => {
           <div className="ludoBox horizontalPath" id="p52"></div>
           <div className="ludoBox horizontalPath " id="p53"></div>
           <div className="ludoBox horizontalPath" id="p54"></div>
-          <div id="blue-Board" className="board">
+          <div
+            id="blue-Board"
+            className={`board ${
+              isMyTurn && currentTurnColor === "blue"
+                ? "bg-blue-700 animate-blink"
+                : ""
+            }`}
+          >
             <div>
               <span></span>
               <span></span>
@@ -338,7 +425,14 @@ const LudoBoard = ({ roomId }) => {
             </svg>
           </div>
           <div className="ludoBox verticalPath" id="p72"></div>
-          <div id="yellow-Board" className="board">
+          <div
+            id="yellow-Board"
+            className={`board ${
+              isMyTurn && currentTurnColor === "yellow"
+                ? "bg-yellow-700 animate-blink"
+                : ""
+            }`}
+          >
             <div>
               <span></span>
               <span></span>
@@ -351,6 +445,13 @@ const LudoBoard = ({ roomId }) => {
               const isStepMatch =
                 step && step.color === color && step.index === index;
               const shouldResetToPos = isStepMatch && step?.position === pos;
+
+              // Highlight movable tokens for current player only after rolling
+              const isMovable =
+                isMyTurn &&
+                hasRolled &&
+                color === playerColor &&
+                movableTokenIndices.includes(index);
 
               return (
                 <Token
@@ -366,6 +467,7 @@ const LudoBoard = ({ roomId }) => {
                   onClick={() => movePieceByColor(color, index)}
                   path={newPath}
                   samePosition={isInSamePosition(pos)}
+                  isMovable={isMovable}
                 />
               );
             })
