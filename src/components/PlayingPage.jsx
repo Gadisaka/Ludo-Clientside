@@ -25,16 +25,17 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
   useSocketEvents(roomId);
 
   // const [displayName, setDisplayName] = useState("");
+  // {error && <p className="text-red-500 text-center">{error}</p>}
 
   return (
-    <div className="text-white relative flex flex-col w-full h-screen items-center py-8 px-4">
+    <div className="text-white relative flex flex-col w-full h-screen justify-between items-center py-8 px-4">
       <img
         src={bg}
         alt="bg"
         className="absolute top-0 left-0 max-h-full w-full object-cover "
       />
-      <div className="w-full max-w-4xl flex flex-col items-center px-4 space-y-2">
-        <div className="w-full flex justify-between items-center">
+      <div className="w-full  flex flex-col items-center px-4 space-y-2">
+        {/* <div className="w-full flex justify-between items-center">
           <button
             onClick={onLeaveGame}
             className="px-3 py-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors z-100"
@@ -44,7 +45,7 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
           <p className="text-sm text-gray-300 z-100">
             Room ID: <b>{roomId}</b>
           </p>
-        </div>
+        </div> */}
 
         {/* Game Settings Display */}
         <div className="flex justify-between items-center px-5 text-xl font-bold text-gray-300 z-100 w-[80%] h-[50px] bg-gray-800/30 border rounded-lg border-white/20  backdrop-blur-md  ">
@@ -56,50 +57,78 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
             <b>{gameSettings?.requiredPieces}</b> Kings {crown}
           </p>
         </div>
+        <div className="w-[90%] h-[50px] bg-white text-black z-100 flex justify-center items-center">
+          {" "}
+          ad will be displayed here
+        </div>
+        <div className="w-full max-w-xl rounded-lg z-100">
+          {lastRoll && (
+            <div className="text-center">
+              <p>
+                @
+                {players.find((p) => p.id === lastRoll.roller)?.name ||
+                  "Unknown"}{" "}
+                rolled a {lastRoll.value}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
-
-      <div className="w-full max-w-xl rounded-lg z-100">
-        {lastRoll && (
-          <div className="text-center">
-            <p>
-              @
-              {players.find((p) => p.id === lastRoll.roller)?.name || "Unknown"}{" "}
-              rolled a {lastRoll.value}
-            </p>
-          </div>
-        )}
-        {error && <p className="text-red-500 text-center">{error}</p>}
-      </div>
-
       <LudoBoard roomId={roomId} />
-      <DieRollingPage
-        value={value}
-        isRolling={isRolling}
-        isMyTurn={socket.id === currentTurn}
-        gameStatus={gameStatus}
-        onRoll={() => rollDice(roomId, socket)}
-        players={players}
-        currentTurn={currentTurn}
-      />
 
-      <div className="flex w-full justify-between items-center mb-4 z-100 ">
-        {players.map((player) => (
+      <div className="flex w-full justify-center items-center z-100 gap-2 ">
+        {/* First player (left) */}
+        {players[0] && (
           <div
-            key={player.id}
+            key={players[0].id}
             className={`flex items-center justify-center py-2 w-[100px] h-fit rounded ${
-              player.id === currentTurn ? "bg-blue-500/20" : "bg-gray-700/50"
+              players[0].id === currentTurn
+                ? "bg-blue-500/20"
+                : "bg-gray-700/50"
             }`}
           >
-            {player.id === currentTurn && <span>🎲</span>}
+            {players[0].id === currentTurn && <span>🎲</span>}
             <span
               className={`text-white text-xl font-bold ${
-                player.id === currentTurn ? "text-yellow-500" : ""
+                players[0].id === currentTurn ? "text-yellow-500" : ""
               }`}
             >
-              @{player.name}
+              @{players[0].name}
             </span>
           </div>
-        ))}
+        )}
+
+        {/* DieRollingPage (center) */}
+        <DieRollingPage
+          value={value}
+          isRolling={isRolling}
+          isMyTurn={socket.id === currentTurn}
+          gameStatus={gameStatus}
+          onRoll={() => rollDice(roomId, socket)}
+          players={players}
+          currentTurn={currentTurn}
+        />
+
+        {/* Second player (right) */}
+        {players[1] && (
+          <div
+            key={players[1].id}
+            className={`flex items-center justify-center py-2 w-[100px] h-fit rounded ${
+              players[1].id === currentTurn
+                ? "bg-blue-500/20"
+                : "bg-gray-700/50"
+            }`}
+          >
+            {players[1].id === currentTurn && <span>🎲</span>}
+            <span
+              className={`text-white text-xl font-bold ${
+                players[1].id === currentTurn ? "text-yellow-500" : ""
+              }`}
+            >
+              @{players[1].name}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -33,7 +33,7 @@ const DieRollingPage = ({
   players.filter((player) => player.id === currentTurn);
 
   return (
-    <div className="flex justify-center bg-gray-600/30 border rounded-lg border-white/20 mt-4 backdrop-blur-md ">
+    <div className="flex justify-center bg-blue-500/20 border rounded-lg border-white/20 ">
       <button
         onClick={onRoll}
         disabled={isDisabled}

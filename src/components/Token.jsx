@@ -128,7 +128,7 @@ function Token({ position, color, onClick, animate, samePosition, isMovable }) {
       <div style={lightStyle()} />
       <div style={tokenStyle}>
         <div
-          className={` fa-solid text-[20px]
+          className={` fa-solid text-[25px]
         } fa-location-pin piece ${color}-piece`}
           onClick={() => onClick(position)}
         ></div>
