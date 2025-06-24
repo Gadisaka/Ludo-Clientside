@@ -23,10 +23,10 @@ const LudoBoard = ({ roomId }) => {
   );
   const [gameState, setGameState] = useState({
     pieces: {
-      red: ["rh1", "rh2", "rh3", "rh4"],
+      // red: ["rh1", "rh2", "rh3", "rh4"],
       green: ["gh1", "gh2", "gh3", "gh4"],
       blue: ["bh1", "bh2", "bh3", "bh4"],
-      yellow: ["yh1", "yh2", "yh3", "yh4"],
+      // yellow: ["yh1", "yh2", "yh3", "yh4"],
     },
   });
   const [error, setError] = useState(null);
@@ -182,7 +182,7 @@ const LudoBoard = ({ roomId }) => {
       const pathIdx = path.indexOf(pos);
       if (pathIdx === -1) return;
       // Check if move stays in path
-      if (pathIdx + diceValue < path.length) {
+      if (pathIdx + diceValue <= path.length) {
         movable.push(idx);
       }
     });

@@ -60,6 +60,24 @@ const useSocketEvents = (roomId) => {
       setTimeout(() => setError(""), 3000);
     });
 
+    // Listen for auto-play (for disconnected player)
+    socket.on("auto_play", ({ playerColor, value, moved, pieceIndex }) => {
+      setIsRolling(false);
+      setValue(value);
+      setError(
+        `Auto-play: ${playerColor} rolled ${value}${
+          moved ? ` and moved piece ${pieceIndex}` : " but could not move"
+        }`
+      );
+      setTimeout(() => setError(""), 2000);
+    });
+
+    // Listen for player lost due to disconnect
+    socket.on("player_lost_due_to_disconnect", ({ playerColor }) => {
+      setError(`Player (${playerColor}) lost due to disconnect.`);
+      setTimeout(() => setError(""), 4000);
+    });
+
     // listed for while the die is rolling
     socket.on("rolling_dice", () => {
       setIsRolling(true);
@@ -86,6 +104,9 @@ const useSocketEvents = (roomId) => {
       socket.off("player_disconnected");
       socket.off("player_reconnected");
       socket.off("game_status_changed");
+      socket.off("auto_play");
+      socket.off("player_lost_due_to_disconnect");
+      socket.off("rolling_dice");
     };
   }, [roomId]);
 };

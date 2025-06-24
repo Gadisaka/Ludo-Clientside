@@ -27,11 +27,13 @@ const Game = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 py-8 px-4">
+    <div className="min-h-screen bg-gray-900">
       {currentRoom ? (
         <PlayingPage roomId={currentRoom} onLeaveGame={handleLeaveGame} />
       ) : (
-        <GameLobby onGameStart={handleGameStart} />
+        <div className="w-full h-full py-6 px-4">
+          <GameLobby onGameStart={handleGameStart} />
+        </div>
       )}
     </div>
   );
