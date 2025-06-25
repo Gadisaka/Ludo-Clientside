@@ -28,13 +28,13 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
   // {error && <p className="text-red-500 text-center">{error}</p>}
 
   return (
-    <div className="text-white relative flex flex-col w-full h-screen justify-between items-center py-8 px-4">
+    <div className="text-white relative flex flex-col w-full h-screen justify- items-center py-8 px-4">
       <img
         src={bg}
         alt="bg"
-        className="absolute top-0 left-0 max-h-full w-full object-cover "
+        className="absolute top-0 left-0 min-h-screen w-full object-cover "
       />
-      <div className="w-full  flex flex-col items-center px-4 space-y-2">
+      <div className="w-full  flex flex-col items-center px-4 space-y-2 z-100 ">
         {/* <div className="w-full flex justify-between items-center">
           <button
             onClick={onLeaveGame}
