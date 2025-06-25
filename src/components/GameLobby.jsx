@@ -14,6 +14,8 @@ const GameLobby = () => {
   const [showGameDetails, setShowGameDetails] = useState(false);
   const navigate = useNavigate();
 
+  const balance = 230.0;
+
   useEffect(() => {
     if (username) {
       setPlayerName(username);
@@ -125,7 +127,7 @@ const GameLobby = () => {
             <circle cx="12" cy="12" r="7" fill="#FFE066" />
             <ellipse cx="12" cy="10" rx="4" ry="1.2" fill="#FFF9C4" />
           </svg>
-          <h1 className="text-xl font-normal text-white ">23.00</h1>
+          <h1 className="text-xl font-normal text-white ">{balance}</h1>
         </div>
         <div className="flex justify-between items-center gap-2 ">
           <button

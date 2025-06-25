@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import DieRollingPage from "./Dierollingbutton";
 import LudoBoard from "./Ludoboard";
 import socket from "../socket";
@@ -13,6 +13,9 @@ import { Navigate, useParams } from "react-router-dom";
 const PlayingPage = () => {
   const { gameID: roomId } = useParams();
   const [leave, setLeave] = useState(false);
+  // Timer state
+  const [waitingTime, setWaitingTime] = useState(0);
+  const timerRef = useRef(null);
 
   const {
     value,
@@ -26,6 +29,35 @@ const PlayingPage = () => {
   } = useGame();
 
   useSocketEvents(roomId);
+
+  // Timer effect: start when waiting, stop/reset otherwise
+  useEffect(() => {
+    if (gameStatus === "waiting" && players.length === 1) {
+      if (!timerRef.current) {
+        timerRef.current = setInterval(() => {
+          setWaitingTime((prev) => prev + 1);
+        }, 1000);
+      }
+    } else {
+      setWaitingTime(0);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [gameStatus, players.length]);
+
+  function formatTime(seconds) {
+    const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+    const ss = String(seconds % 60).padStart(2, "0");
+    return `${mm}:${ss}`;
+  }
 
   function onLeaveGame() {
     setLeave(true);
@@ -46,6 +78,17 @@ const PlayingPage = () => {
         className="absolute top-0 left-0 min-h-screen w-full object-cover "
       />
       <div className="w-full  flex flex-col items-center px-4 space-y-2 z-100 ">
+        {/* Show waiting message if game is waiting and only one player */}
+        {gameStatus === "waiting" && players.length === 1 && (
+          <div className="w-full absolute top-1/3 flex flex-col justify-center items-center py-4 z-100">
+            <span className="text-yellow-400 text-lg font-semibold bg-gray-900/80 px-6 py-2 rounded-lg shadow-lg border border-yellow-500/30 flex flex-col items-center">
+              waiting for opponent to join...
+              <span className="text-xs text-gray-300 mt-1">
+                Waiting time: {formatTime(waitingTime)}
+              </span>
+            </span>
+          </div>
+        )}
         {/* <div className="w-full flex justify-between items-center">
           <button
             onClick={onLeaveGame}

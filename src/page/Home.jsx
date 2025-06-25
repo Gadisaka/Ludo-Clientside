@@ -1,7 +1,7 @@
 import img from "../assets/ludoimage.png";
 import { Link } from "react-router-dom";
 
-const balance = 23.0;
+const balance = 230.0;
 const recentRooms = [
   { id: "#R123", avatar: "🦁", players: 2 },
   { id: "#X456", avatar: "🐍", players: 2 },

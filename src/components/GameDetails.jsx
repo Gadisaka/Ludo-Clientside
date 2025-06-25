@@ -14,6 +14,7 @@ const GameDetails = ({ onClose, onGameStart }) => {
 
   const stakeOptions = [20, 30, 40, 50, 100, 200, 500, 1000];
   const pieceOptions = [1, 2, 3, 4];
+  const balance = 230.0;
 
   useEffect(() => {
     if (username) {
@@ -68,10 +69,16 @@ const GameDetails = ({ onClose, onGameStart }) => {
             {stakeOptions.map((stake) => (
               <button
                 key={stake}
+                disabled={stake > balance}
                 onClick={() => handleStakeSelect(stake)}
-                className="p-3 bg-gray-900  rounded-lg hover:bg-gray-950 transition"
+                className={`p-3  flex flex-col justify-center items-center  rounded-lg hover:bg-gray-950 transition ${
+                  stake > balance ? "bg-gray-900/50" : "bg-gray-900"
+                } `}
               >
                 {stake}
+                {stake > balance && (
+                  <h1 className="text-sm text-red-500">insufficient</h1>
+                )}
               </button>
             ))}
           </div>

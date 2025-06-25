@@ -11,8 +11,11 @@ import Game from "./page/Game";
 import Home from "./page/Home";
 import Login from "./page/auth/Login";
 import { useEffect, useState } from "react";
-import PlayingPage from "./components/PlayingPage"
-import { jwtDecode } from 'jwt-decode';
+import PlayingPage from "./components/PlayingPage";
+import { jwtDecode } from "jwt-decode";
+import Profile from "./page/Profile";
+import History from "./page/History";
+import Notification from "./page/Notification";
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -76,6 +79,30 @@ const App = () => {
           element={
             <ProtectedRoute>
               <PlayingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <History />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notification"
+          element={
+            <ProtectedRoute>
+              <Notification />
             </ProtectedRoute>
           }
         />
