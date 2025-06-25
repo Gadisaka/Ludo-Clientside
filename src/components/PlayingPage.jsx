@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import DieRollingPage from "./Dierollingbutton";
 import LudoBoard from "./Ludoboard";
 import socket from "../socket";
@@ -7,9 +7,13 @@ import useSocketEvents from "../hooks/useSocketEvents";
 import bg from "../assets/Picsart_25-06-24_16-26-17-659.jpg";
 import { crown } from "./Dies";
 import coin from "../assets/coin.png";
+import { Navigate, useParams } from "react-router-dom";
 // import useUserStore from "../store/zutstand";
 
-const PlayingPage = ({ roomId, onLeaveGame }) => {
+const PlayingPage = () => {
+  const { gameID: roomId } = useParams();
+  const [leave, setLeave] = useState(false);
+
   const {
     value,
     isRolling,
@@ -17,12 +21,19 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
     currentTurn,
     gameStatus,
     lastRoll,
-    error,
     rollDice,
     gameSettings,
   } = useGame();
 
   useSocketEvents(roomId);
+
+  function onLeaveGame() {
+    setLeave(true);
+  }
+
+  if (leave) {
+    return <Navigate to="/game" />;
+  }
 
   // const [displayName, setDisplayName] = useState("");
   // {error && <p className="text-red-500 text-center">{error}</p>}
@@ -48,14 +59,41 @@ const PlayingPage = ({ roomId, onLeaveGame }) => {
         </div> */}
 
         {/* Game Settings Display */}
-        <div className="flex justify-between items-center px-5 text-xl font-bold text-gray-300 z-100 w-[80%] h-[50px] bg-gray-800/30 border rounded-lg border-white/20  backdrop-blur-md  ">
-          <p className="flex gap-2 justify-center items-center">
-            Stake: <b>{gameSettings?.stake}</b>{" "}
-            <img src={coin} alt="coin" className="w-6 h-6" />
-          </p>
-          <p className="flex gap-1 justify-center items-center">
-            <b>{gameSettings?.requiredPieces}</b> Kings {crown}
-          </p>
+        <div className="w-full h-[50px] flex justify-center items-center gap-1 z-100">
+          <button
+            className=" rounded-full p-1 cursor-pointer "
+            onClick={() => onLeaveGame()}
+          >
+            <svg
+              width="30px"
+              height="30px"
+              viewBox="0 0 25 25"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="rotate-180 bg-red-500 rounded-full"
+            >
+              <path
+                d="M16.5 15V19.5H5.5V5.5H16.5V10M10 12.5H22.5"
+                stroke="#121923"
+                stroke-width="1.2"
+              />
+              <path
+                d="M20 10L22.5 12.5L20 15"
+                stroke="#121923"
+                stroke-width="1.2"
+              />
+            </svg>
+          </button>
+
+          <div className="flex justify-between items-center px-5 text-xl font-bold text-gray-300 z-100 w-[80%] h-[50px] bg-gray-800/30 border rounded-lg border-white/20  backdrop-blur-md  ">
+            <p className="flex gap-2 justify-center items-center">
+              Stake: <b>{gameSettings?.stake}</b>{" "}
+              <img src={coin} alt="coin" className="w-6 h-6" />
+            </p>
+            <p className="flex gap-1 justify-center items-center">
+              <b>{gameSettings?.requiredPieces}</b> Kings {crown}
+            </p>
+          </div>
         </div>
         <div className="w-[90%] h-[50px] bg-white text-black z-100 flex justify-center items-center">
           {" "}

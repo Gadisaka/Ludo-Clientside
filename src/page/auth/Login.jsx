@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -90,6 +90,36 @@ const Login = () => {
     setShowConfirmPassword(false);
     setPasswordMatch(false);
   };
+
+  // function isTokenExpired(token) {
+  //   try {
+  //     const decoded = jwt_decode(token);
+  //     const currentTime = Date.now() / 1000; // in seconds
+  //     return decoded.exp < currentTime;
+  //   } catch (error) {
+  //     console.log(error);
+  //     // return true; // treat malformed token as expired
+  //   }
+  // }
+
+  // function checkTokenAndLogout() {
+  //   const token = localStorage.getItem("token");
+  //   if (!token || isTokenExpired(token)) {
+  //     logoutUser(); // clear storage and redirect to login
+  //   }
+  // }
+
+  // // Run on mount or at intervals
+  // useEffect(() => {
+  //   checkTokenAndLogout();
+  //   const interval = setInterval(checkTokenAndLogout, 60000); // check every minute
+  //   return () => clearInterval(interval);
+  // }, []);
+
+  // function logoutUser() {
+  //   localStorage.removeItem("token");
+  //   window.location.href = "/login"; // or use navigate('/login') in React Router
+  // }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

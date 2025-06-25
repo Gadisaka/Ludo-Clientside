@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import socket from "../socket";
 import useUserStore from "../store/zutstand";
 import GameDetails from "./GameDetails";
+import { useNavigate } from "react-router-dom";
 
-const GameLobby = ({ onGameStart }) => {
+const GameLobby = () => {
   const [playerName, setPlayerName] = useState("");
   const [availableGames, setAvailableGames] = useState([]);
   const [error, setError] = useState("");
@@ -11,6 +12,7 @@ const GameLobby = ({ onGameStart }) => {
   const [isConnecting, setIsConnecting] = useState(true);
   const username = useUserStore((state) => state.username);
   const [showGameDetails, setShowGameDetails] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (username) {
@@ -92,7 +94,7 @@ const GameLobby = ({ onGameStart }) => {
     // Listen for room update to confirm successful join
     socket.once("room_update", (data) => {
       console.log("Successfully joined room:", data);
-      onGameStart(roomId);
+      navigate(`/game/${roomId}`);
     });
 
     // Listen for any errors during join
@@ -100,6 +102,10 @@ const GameLobby = ({ onGameStart }) => {
       console.error("Error joining room:", msg);
       setError(msg);
     });
+  };
+
+  const handleGameCreated = (roomId) => {
+    navigate(`/game/${roomId}`);
   };
 
   return (
@@ -226,7 +232,7 @@ const GameLobby = ({ onGameStart }) => {
         {showGameDetails && (
           <GameDetails
             onClose={() => setShowGameDetails(false)}
-            onGameStart={onGameStart}
+            onGameStart={handleGameCreated}
           />
         )}
       </div>
