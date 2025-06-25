@@ -134,7 +134,8 @@ const PlayingPage = () => {
               <img src={coin} alt="coin" className="w-6 h-6" />
             </p>
             <p className="flex gap-1 justify-center items-center">
-              <b>{gameSettings?.requiredPieces}</b> Kings {crown}
+              <b>{gameSettings?.requiredPieces}</b> King
+              {gameSettings?.requiredPieces > 1 ? "s" : ""} {crown}
             </p>
           </div>
         </div>

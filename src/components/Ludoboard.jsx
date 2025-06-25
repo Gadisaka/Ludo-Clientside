@@ -96,6 +96,7 @@ const LudoBoard = ({ roomId }) => {
         loser: matchResults.loser,
         gameDuration: matchResults.gameDuration,
         requiredPieces: matchResults.requiredPieces,
+        stake: matchResults.stake,
       });
     }
   }, [step, matchResults]);
