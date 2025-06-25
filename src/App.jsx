@@ -12,7 +12,7 @@ import Home from "./page/Home";
 import Login from "./page/auth/Login";
 import { useEffect, useState } from "react";
 import PlayingPage from "./components/PlayingPage";
-const jwt_decode = (await import("jwt-decode")).default;
+import jwt_decode from 'jwt-decode';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
