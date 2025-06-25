@@ -11,8 +11,8 @@ import Game from "./page/Game";
 import Home from "./page/Home";
 import Login from "./page/auth/Login";
 import { useEffect, useState } from "react";
-import PlayingPage from "./components/PlayingPage";
-import {jwt_decode} from 'jwt-decode';
+import PlayingPage from "./components/PlayingPage"
+import { jwtDecode } from 'jwt-decode';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -31,7 +31,7 @@ const App = () => {
     if (!token) {
       // return <Navigate to="/login" replace />;
       try {
-        const { exp } = jwt_decode(token);
+        const { exp } = jwtDecode(token);
         if (exp < Date.now() / 1000) {
           localStorage.removeItem("token");
           return <Navigate to="/login" />;
