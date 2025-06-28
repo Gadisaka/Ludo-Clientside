@@ -9,8 +9,11 @@ const GameDetails = ({ onClose, onGameStart }) => {
   const [selectedPieces, setSelectedPieces] = useState(null);
   const [playerName, setPlayerName] = useState("");
   const username = useUserStore((state) => state.username);
+  const setGameSetting = useUserStore((state) => state.setGameSetting);
   const [error, setError] = useState("");
   const [isLoading, setIsLoadign] = useState(false);
+
+  setGameSetting({ stake: selectedStake, requiredPieces: selectedPieces });
 
   const stakeOptions = [20, 30, 40, 50, 100, 200, 500, 1000];
   const pieceOptions = [1, 2, 3, 4];

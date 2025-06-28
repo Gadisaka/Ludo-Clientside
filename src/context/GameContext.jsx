@@ -13,8 +13,8 @@ export const GameProvider = ({ children }) => {
   const [lastRoll, setLastRoll] = useState(null);
   const [error, setError] = useState(null);
   const [gameSettings, setGameSettings] = useState({
-    stake: 0,
-    requiredPieces: 4,
+    stake: 50,
+    requiredPieces: 2,
   });
   const [isConnected, setIsConnected] = useState(false);
   const [currentRoomId, setCurrentRoomId] = useState(null);
@@ -71,6 +71,7 @@ export const GameProvider = ({ children }) => {
     socket.on("room_created", (data) => {
       console.log("Room created data received:", data);
       setCurrentRoomId(data.roomId);
+      setGameSettings(data.gameSettings);
     });
 
     socket.on("player_reconnected", (data) => {

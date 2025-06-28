@@ -5,10 +5,14 @@ const useUserStore = create((set) => ({
   username: "",
   age: null,
   currentPlayerColor: "",
+  gameSetting: { stake: 0, requiredPieces: 4 }, // Default game setting
+  balance: 230.0,
+  setGameSetting: (gameSetting) => set({ gameSetting }),
   setAvatar: (avatar) => set({ avatar }),
   setUsername: (username) => set({ username }),
   setAge: (age) => set({ age }),
   setCurrentPlayerColor: (currentPlayerColor) => set({ currentPlayerColor }),
+  setBalance: (balance) => set({ balance }),
 }));
 
 export default useUserStore;
