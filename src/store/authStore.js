@@ -2,7 +2,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import axios from "axios";
-import { jwt_decode } from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 const checkTokenExpiry = () => {
   const token = localStorage.getItem("auth-storage");
@@ -12,7 +12,7 @@ const checkTokenExpiry = () => {
       const parsed = JSON.parse(token);
       const jwt = parsed?.state?.token;
       if (jwt) {
-        const decoded = jwt_decode(jwt);
+        const decoded = jwtDecode(jwt);
         if (decoded.exp && Date.now() / 1000 > decoded.exp) {
           localStorage.removeItem("auth-storage");
           window.location.href = "/login";
