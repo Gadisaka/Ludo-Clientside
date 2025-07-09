@@ -1,9 +1,21 @@
 import { io } from "socket.io-client";
+// import useAuthStore from "./store/authStore";
 
 //https://ludo-serverside.onrender.com
 //http://localhost:4002
+const persisted = localStorage.getItem("auth-storage");
+let token = null;
+if (persisted) {
+  try {
+    const parsed = JSON.parse(persisted);
+    token = parsed?.state?.token;
+  } catch (e) {
+    console.log(e);
+  }
+}
+// console.log(token, "frgegre");
 
-const token = localStorage.getItem("token"); // Get token from localStorage
+// Get token from localStorage
 
 const socket = io("https://ludo-serverside.onrender.com", {
   reconnection: true,
@@ -31,5 +43,7 @@ socket.on("connect_error", (error) => {
 socket.on("disconnect", (reason) => {
   console.log("Socket disconnected:", reason);
 });
+
+// {"state":{"user":{"id":"c47f68f3-9ab4-4c10-975a-e1f9831b8382","phone":"7","username":"ronaldo","password":"$2b$10$X9F2HidwwxpxZFOrGdEOKuIT8AhnA9Wupkkjf0r4XARXZW4lDK9qe","role":"PLAYER","isActive":true,"createdAt":"2025-06-17T17:13:11.080Z","updatedAt":"2025-06-17T17:13:11.080Z"},"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImM0N2Y2OGYzLTlhYjQtNGMxMC05NzVhLWUxZjk4MzFiODM4MiIsInJvbGUiOiJQTEFZRVIiLCJ1c2VybmFtZSI6InJvbmFsZG8iLCJpYXQiOjE3NTIwOTIyNzAsImV4cCI6MTc1MjM1MTQ3MH0.ny9FDhgbTCy3kOS8BClvJIyjfl3fRxFhTfiwU4Bs1Lo","loading":false,"error":null},"version":0}
 
 export default socket;

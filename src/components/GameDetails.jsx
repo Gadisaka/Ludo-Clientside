@@ -64,9 +64,9 @@ const GameDetails = ({ onClose, onGameStart }) => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 text-yellow-500 pt-[1px] px-[1px] rounded-t-xl border-l border-r border-t border-transparent bg-gradient-to-r from-red-500 via-blue-500 to-purple-500 animate-gradient-x-border">
+    <div className="fixed  left-0 right-0 text-yellow-500 pt-[1px] px-[1px] rounded-xl border border-transparent bg-gradient-to-r from-red-500 via-blue-500 to-purple-500 animate-gradient-x-border">
       {step === 1 && (
-        <div className="space-y-4 bg-gray-700 p-4 rounded-t-xl">
+        <div className="space-y-4 bg-gray-700 p-4 rounded-xl">
           <h2 className="text-xl font-bold text-center">Select Stake Amount</h2>
           <div className="grid grid-cols-4 gap-3">
             {stakeOptions.map((stake) => (
@@ -89,7 +89,7 @@ const GameDetails = ({ onClose, onGameStart }) => {
       )}
 
       {step === 2 && (
-        <div className="space-y-4 bg-gray-700 p-4 rounded-t-xl py-16">
+        <div className="space-y-4 bg-gray-700 p-4 rounded-xl py-16">
           <div className="grid grid-cols-4 gap-3">
             {pieceOptions.map((pieces) => (
               <button
@@ -106,7 +106,7 @@ const GameDetails = ({ onClose, onGameStart }) => {
       )}
 
       {step === 3 && (
-        <div className="space-y-4 bg-gray-700 p-4 rounded-t-xl ">
+        <div className="space-y-4 bg-gray-700 p-4 rounded-xl ">
           <div className="space-x-2 text-center text-2xl gap-12 flex justify-center items-center">
             <p className="">{selectedStake} ብር </p>
             <span className="flex flex-col justify-center items-center ">
