@@ -1,113 +1,39 @@
 import "./App.css";
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  Navigate,
-  useLocation,
-} from "react-router-dom";
-import Navbar from "./components/Navbar";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedLayout from "./components/ProtectedLayout";
 import Game from "./page/Game";
 import Home from "./page/Home";
 import Login from "./page/auth/Login";
-import { useEffect, useState } from "react";
 import PlayingPage from "./components/PlayingPage";
-import { jwtDecode } from "jwt-decode";
 import Profile from "./page/Profile";
 import History from "./page/History";
 import Notification from "./page/Notification";
+import Deposit from "./page/profile/Deposit";
+import Withdraw from "./page/profile/Withdraw";
 
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const location = useLocation();
-
-  useEffect(() => {
-    // Check if user is authenticated
-    const token = localStorage.getItem("token");
-    setIsAuthenticated(!!token);
-  }, []);
-
-  // Protected Route Component
-  const ProtectedRoute = ({ children }) => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      // return <Navigate to="/login" replace />;
-      try {
-        const { exp } = jwtDecode(token);
-        if (exp < Date.now() / 1000) {
-          localStorage.removeItem("token");
-          return <Navigate to="/login" />;
-        }
-        return children;
-      } catch {
-        return <Navigate to="/login" />;
-      }
-    }
-
-    return children;
-  };
-
   return (
-    <div>
-      {isAuthenticated &&
-      (location.pathname !== "/login" ||
-        location.pathname !== "/register" ||
-        location.pathname !== "/game/:gameID") ? (
-        <Navbar />
-      ) : null}
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/game"
-          element={
-            <ProtectedRoute>
-              <Game />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/game/:gameID"
-          element={
-            <ProtectedRoute>
-              <PlayingPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/history"
-          element={
-            <ProtectedRoute>
-              <History />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/notification"
-          element={
-            <ProtectedRoute>
-              <Notification />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </div>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route element={<ProtectedRoute />}>
+        {" "}
+        {/* Auth check */}
+        <Route path="/deposit" element={<Deposit />} />
+        <Route path="/withdraw" element={<Withdraw />} />
+        <Route element={<ProtectedLayout />}>
+          {" "}
+          {/* Navbar layout */}
+          <Route path="/" element={<Home />} />
+          <Route path="/game" element={<Game />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/history" element={<History />} />
+          <Route path="/notification" element={<Notification />} />
+        </Route>
+      </Route>
+      {/* If you want /game/:gameID protected, move it inside above */}
+      <Route path="/game/:gameID" element={<PlayingPage />} />
+    </Routes>
   );
 };
 

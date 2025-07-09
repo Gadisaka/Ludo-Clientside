@@ -1,89 +1,264 @@
 import React, { useState } from "react";
-import useUserStore from "../store/zutstand";
-import Deposit from "./profile/Deposit";
-import Withdraw from "./profile/Withdraw";
-import Transactions from "./profile/Transactions";
 import {
-  FaCoins,
-  FaLock,
-  FaArrowDown,
+  FaUser,
+  FaWallet,
+  FaTrophy,
+  FaClock,
   FaArrowUp,
-  FaHistory,
-  FaUserCircle,
+  FaArrowDown,
+  FaPlus,
+  FaMinus,
 } from "react-icons/fa";
+import useAuthStore from "../store/authStore";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
-  const username = useUserStore((state) => state.username) || "Guest";
-  const balance = useUserStore((state) => state.balance) || 0;
-  const [activeTab, setActiveTab] = useState(null);
+  const [balance] = useState(2450.75);
+  const [transactions] = useState([
+    {
+      id: 1,
+      type: "deposit",
+      amount: 500,
+      date: "2024-01-15",
+      time: "14:30",
+      status: "completed",
+    },
+    {
+      id: 2,
+      type: "win",
+      amount: 150,
+      date: "2024-01-15",
+      time: "12:15",
+      status: "completed",
+    },
+    {
+      id: 3,
+      type: "withdraw",
+      amount: -200,
+      date: "2024-01-14",
+      time: "18:45",
+      status: "completed",
+    },
+    {
+      id: 4,
+      type: "deposit",
+      amount: 1000,
+      date: "2024-01-14",
+      time: "10:20",
+      status: "completed",
+    },
+    {
+      id: 5,
+      type: "loss",
+      amount: -75,
+      date: "2024-01-13",
+      time: "16:30",
+      status: "completed",
+    },
+    {
+      id: 6,
+      type: "win",
+      amount: 300,
+      date: "2024-01-12",
+      time: "20:15",
+      status: "completed",
+    },
+  ]);
+
+  const logout = useAuthStore((state) => state.logout);
+  const navigate = useNavigate();
+
+  const getTransactionIcon = (type) => {
+    switch (type) {
+      case "deposit":
+        return <FaArrowUp className="w-4 h-4 text-green-400" />;
+      case "withdraw":
+        return <FaArrowDown className="w-4 h-4 text-red-400" />;
+      case "win":
+        return <FaTrophy className="w-4 h-4 text-yellow-400" />;
+      case "loss":
+        return <FaMinus className="w-4 h-4 text-red-400" />;
+      default:
+        return <FaClock className="w-4 h-4 text-gray-400" />;
+    }
+  };
+
+  const getTransactionColor = (type, amount) => {
+    if (amount > 0) return "text-green-400";
+    if (amount < 0) return "text-red-400";
+    return "text-gray-400";
+  };
+
+  const formatAmount = (amount) => {
+    const absAmount = Math.abs(amount);
+    return amount >= 0 ? `+${absAmount} ብር` : `-${absAmount} ብር`;
+  };
+
+  function handleClick(type) {
+    navigate(`/${type}`);
+  }
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center bg-gradient-to-br from-purple-900 via-gray-900 to-yellow-900 py-12 px-2">
-      <div className="bg-gray-900/80 rounded-2xl shadow-2xl p-8 flex flex-col items-center w-full max-w-lg border-2 border-yellow-500/30 relative">
-        <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-gradient-to-tr from-yellow-400 via-yellow-600 to-purple-500 p-2 rounded-full shadow-lg border-4 border-gray-900">
-          <FaUserCircle className="text-white text-6xl drop-shadow-lg" />
-        </div>
-        <h1 className="mt-12 text-3xl font-extrabold text-yellow-400 tracking-wide drop-shadow-lg">
-          @{username}
-        </h1>
-        <div className="flex items-center gap-2 mt-4 mb-8 text-2xl font-bold text-white bg-gray-800/80 px-6 py-3 rounded-xl shadow-inner border border-yellow-400/30">
-          <FaCoins className="text-yellow-400 animate-bounce" />
-          <span className="text-yellow-300">{balance}</span>
-        </div>
-        <button
-          className="mb-8 px-6 py-2 bg-gradient-to-r from-purple-600 via-yellow-500 to-yellow-400 text-white rounded-full font-semibold shadow-lg hover:scale-105 hover:from-yellow-500 hover:to-purple-600 transition-all flex items-center gap-2"
-          onClick={() => setActiveTab(activeTab === "change" ? null : "change")}
-        >
-          <FaLock className="inline-block" /> Change Password
-        </button>
-        <div className="flex gap-4 mb-8 w-full justify-center">
-          <button
-            className={`flex flex-col items-center px-6 py-3 rounded-xl font-bold shadow-md border-2 transition-all duration-200 ${
-              activeTab === "deposit"
-                ? "bg-yellow-400 text-gray-900 border-yellow-500 scale-105"
-                : "bg-gray-800/80 text-yellow-300 border-yellow-700 hover:bg-yellow-500/80 hover:text-white"
-            }`}
-            onClick={() =>
-              setActiveTab(activeTab === "deposit" ? null : "deposit")
-            }
-          >
-            <FaArrowDown className="text-2xl mb-1" /> Deposit
-          </button>
-          <button
-            className={`flex flex-col items-center px-6 py-3 rounded-xl font-bold shadow-md border-2 transition-all duration-200 ${
-              activeTab === "withdraw"
-                ? "bg-yellow-400 text-gray-900 border-yellow-500 scale-105"
-                : "bg-gray-800/80 text-yellow-300 border-yellow-700 hover:bg-yellow-500/80 hover:text-white"
-            }`}
-            onClick={() =>
-              setActiveTab(activeTab === "withdraw" ? null : "withdraw")
-            }
-          >
-            <FaArrowUp className="text-2xl mb-1" /> Withdraw
-          </button>
-          <button
-            className={`flex flex-col items-center px-6 py-3 rounded-xl font-bold shadow-md border-2 transition-all duration-200 ${
-              activeTab === "transactions"
-                ? "bg-yellow-400 text-gray-900 border-yellow-500 scale-105"
-                : "bg-gray-800/80 text-yellow-300 border-yellow-700 hover:bg-yellow-500/80 hover:text-white"
-            }`}
-            onClick={() =>
-              setActiveTab(activeTab === "transactions" ? null : "transactions")
-            }
-          >
-            <FaHistory className="text-2xl mb-1" /> Transaction
-          </button>
-        </div>
-        <div className="w-full flex flex-col items-center min-h-[120px]">
-          {activeTab === "deposit" && <Deposit />}
-          {activeTab === "withdraw" && <Withdraw />}
-          {activeTab === "transactions" && <Transactions />}
-          {activeTab === "change" && (
-            <div className="w-full bg-gray-800/90 rounded-xl p-6 text-center text-white shadow-lg border border-yellow-400/20 animate-fade-in">
-              <h2 className="text-xl font-bold mb-2">Change Password</h2>
-              <p className="text-gray-300">Feature coming soon!</p>
+    <div className="h-full bg-gray-800 p-4">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Profile Header */}
+        <div className="bg-gray-900 border border-gray-700 shadow-2xl rounded-xl">
+          <div className="p-8 flex flex-col items-center space-y-6">
+            {/* Avatar */}
+            <div className="relative">
+              <div className="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center shadow-lg">
+                <FaUser className="w-12 h-12 text-white" />
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-gray-900"></div>
             </div>
-          )}
+            {/* Username */}
+            <div className="text-center">
+              <h1 className="text-3xl font-bold text-white mb-2">
+                GameMaster_007
+              </h1>
+            </div>
+            {/* Balance */}
+            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md">
+              <div className="text-center text-3xl font-bold text-white flex items-center justify-center gap-2 space-x-3 mb-2">
+                <FaWallet className="w-6 h-6 text-yellow-400" />{" "}
+                <span> {balance.toFixed(2)} ብር</span>
+              </div>
+            </div>
+            {/* Action Buttons */}
+            <div className="flex space-x-4 w-full max-w-md">
+              {/* deposit buttonn */}
+              <button
+                onClick={() => handleClick("deposit")}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center"
+              >
+                <FaPlus className="w-5 h-5 mr-2" /> Deposit
+              </button>
+              {/* withdraw button */}
+              <button
+                onClick={() => handleClick("withdraw")}
+                className="flex border border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white font-semibold p-3 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg  items-center justify-center"
+              >
+                {/* width="30px" height="30px" */}
+                <svg
+                  width="30px"
+                  height="30px"
+                  viewBox="-0.64 -0.64 17.28 17.28"
+                  version="1.1"
+                  xmlns="http://www.w3.org/2000/svg"
+                  xmlns:xlink="http://www.w3.org/1999/xlink"
+                  fill="#ffffff"
+                  stroke="#ffffff"
+                  stroke-width="0.00016"
+                >
+                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g
+                    id="SVGRepo_tracerCarrier"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  ></g>
+                  <g id="SVGRepo_iconCarrier">
+                    {" "}
+                    <path
+                      fill="#ffffff"
+                      d="M8 0l2 3h-1v2h-2v-2h-1l2-3z"
+                    ></path>{" "}
+                    <path
+                      fill="#ffffff"
+                      d="M15 7v8h-14v-8h14zM16 6h-16v10h16v-10z"
+                    ></path>{" "}
+                    <path
+                      fill="#ffffff"
+                      d="M8 8c1.657 0 3 1.343 3 3s-1.343 3-3 3h5v-1h1v-4h-1v-1h-5z"
+                    ></path>{" "}
+                    <path
+                      fill="#ffffff"
+                      d="M5 11c0-1.657 1.343-3 3-3h-5v1h-1v4h1v1h5c-1.657 0-3-1.343-3-3z"
+                    ></path>{" "}
+                  </g>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        {/* Transaction History */}
+        <div className="bg-gray-900 border border-gray-700 shadow-2xl rounded-xl">
+          <div className="px-8 pt-6 pb-2">
+            <div className="text-white text-xl flex items-center space-x-2 mb-4">
+              <FaClock className="w-5 h-5 text-blue-400" />
+              <span>Transaction History</span>
+            </div>
+            <div
+              className="space-y-1 max-h-96 overflow-y-auto"
+              style={{ maxHeight: "24rem" }}
+            >
+              {transactions.slice(0, 6).map((transaction) => (
+                <div
+                  key={transaction.id}
+                  className="flex items-center justify-between p-4 hover:bg-gray-800 transition-colors duration-150 border-b border-gray-700 last:border-b-0"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center">
+                      {getTransactionIcon(transaction.type)}
+                    </div>
+                    <div>
+                      <p className="text-white font-medium capitalize">
+                        {transaction.type === "win"
+                          ? "Game Won"
+                          : transaction.type === "loss"
+                          ? "Game Lost"
+                          : transaction.type}
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        {transaction.date} • {transaction.time}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p
+                      className={`font-bold text-lg ${getTransactionColor(
+                        transaction.type,
+                        transaction.amount
+                      )}`}
+                    >
+                      {formatAmount(transaction.amount)}
+                    </p>
+                    <p className="text-xs text-gray-400 uppercase">
+                      {transaction.status}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        {/* Stats Cards */}
+        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 text-center">
+            <FaTrophy className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-white">24</p>
+            <p className="text-gray-400">Games Won</p>
+          </div>
+          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 text-center">
+            <FaArrowUp className="w-8 h-8 text-green-400 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-white">1,250 ብር</p>
+            <p className="text-gray-400">Total Winnings</p>
+          </div>
+          <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 text-center">
+            <FaClock className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+            <p className="text-2xl font-bold text-white">12h 45m</p>
+            <p className="text-gray-400">Play Time</p>
+          </div>
+        </div> */}
+        <div className="w-full flex justify-center items-center ">
+          <button
+            className="w-full border-green-500 py-3 hover:bg-green-700 font-bold  rounded-xl text-xl text-white bg-gray-900 "
+            onClick={() => {
+              logout();
+              navigate("/login");
+            }}
+          >
+            Logout
+          </button>
         </div>
       </div>
     </div>
