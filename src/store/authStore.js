@@ -2,7 +2,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import axios from "axios";
-import jwt_decode from "jwt-decode";
+import { jwt_decode } from "jwt-decode";
 
 const checkTokenExpiry = () => {
   const token = localStorage.getItem("auth-storage");
