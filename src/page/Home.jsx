@@ -1,5 +1,5 @@
 import img from "../assets/ludoimage.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const balance = 230.0;
 const recentRooms = [
@@ -15,6 +15,8 @@ const leaderboard = [
 ];
 
 function Home() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen w-full flex flex-col md:flex-row items-start p-5 bg-gray-900 gap-5">
       {/* 🟣 Sidebar Neon Panel */}
@@ -32,7 +34,7 @@ function Home() {
               <span className="flex items-center gap-2">
                 {user.emoji} {user.name}
               </span>
-              <span className="text-yellow-400">{user.xp} XP</span>
+              <span className="text-green-400">{user.xp} XP</span>
             </li>
           ))}
         </ul>
@@ -42,7 +44,7 @@ function Home() {
         <div className="w-full bg-gray-800 py-4 px-4 rounded-xl text-xl font-bold text-white flex justify-between items-center shadow-md shadow-yellow-500/10 hover:shadow-yellow-500/30 transition">
           <h1 className="flex items-center gap-1">
             Balance:{" "}
-            <span className="text-yellow-400 flex items-center gap-1">
+            <span className="text-green-600 flex items-center gap-1">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width={20}
@@ -58,7 +60,10 @@ function Home() {
               {balance}
             </span>
           </h1>
-          <button className="px-4 py-1 bg-yellow-500 text-white rounded-full  transition shadow-lg hover:shadow-blue-400/40">
+          <button
+            onClick={() => navigate("/deposit")}
+            className="px-4 py-1 bg-green-500 text-white rounded-full  transition shadow-lg hover:shadow-blue-400/40"
+          >
             Deposit
           </button>
         </div>
