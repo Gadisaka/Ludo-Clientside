@@ -83,20 +83,22 @@ function Token({ position, color, onClick, animate, samePosition, isMovable }) {
   }, [animate, currentPosition]);
 
   // Get coordinates for the token's current position
-  const top = ludoBoxCoordinates[position]?.y || 0;
-  const left = ludoBoxCoordinates[position]?.x || 0;
-  const addedPosition = samePosition ? 8 : 0;
+  const top = parseFloat(ludoBoxCoordinates[position]?.y || "0%");
+  const left = parseFloat(ludoBoxCoordinates[position]?.x || "0%");
+  const addedPosition = samePosition ? 2.3 : 0; // Convert 8px to percentage (8/350 ≈ 2.3%)
 
   // Light style
   const lightStyle = () => {
     if (!lightPosition) return { display: "none" };
-    const coord = ludoBoxCoordinates[lightPosition] || { x: 0, y: 0 };
+    const coord = ludoBoxCoordinates[lightPosition] || { x: "0%", y: "0%" };
+    const coordX = parseFloat(coord.x);
+    const coordY = parseFloat(coord.y);
     return {
       position: "absolute",
-      left: `${coord.x + 5}px`,
-      top: `${coord.y + 5}px`,
-      width: 10,
-      height: 10,
+      left: `${coordX + 1.4}%`, // Convert 5px to percentage (5/350 ≈ 1.4%)
+      top: `${coordY + 1.4}%`, // Convert 5px to percentage (5/350 ≈ 1.4%)
+      width: "2.9%", // Convert 10px to percentage (10/350 ≈ 2.9%)
+      height: "2.9%", // Convert 10px to percentage (10/350 ≈ 2.9%)
       borderRadius: "50%",
       background:
         color === "red"
@@ -116,8 +118,8 @@ function Token({ position, color, onClick, animate, samePosition, isMovable }) {
   // Blinking background for movable tokens
   const tokenStyle = {
     position: "absolute",
-    left: `${left + 10 + addedPosition}px`,
-    top: `${top + 10}px`,
+    left: `${left + 2.9 + addedPosition}%`, // Convert 10px to percentage (10/350 ≈ 2.9%)
+    top: `${top + 2.9}%`, // Convert 10px to percentage (10/350 ≈ 2.9%)
     transition: "left 0.3s ease, top 0.3s ease",
     zIndex: 2,
   };

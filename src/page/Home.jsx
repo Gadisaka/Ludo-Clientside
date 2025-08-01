@@ -1,46 +1,34 @@
 import img from "../assets/ludoimage.png";
 import { Link, useNavigate } from "react-router-dom";
+import { Download, Wallet } from "lucide-react";
 
 const balance = 230.0;
-const recentRooms = [
-  { id: "#R123", avatar: "🦁", players: 2 },
-  { id: "#X456", avatar: "🐍", players: 2 },
-  { id: "#Z789", avatar: "🐯", players: 2 },
-];
-
-const leaderboard = [
-  { name: "@Bir***2", xp: 220, emoji: "👑" },
-  { name: "@Nat***1", xp: 190, emoji: "⚡" },
-  { name: "@Rob***9", xp: 150, emoji: "🔥" },
-];
 
 function Home() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row items-start p-5 bg-gray-900 gap-5">
-      {/* 🟣 Sidebar Neon Panel */}
+    <div className="min-h-screen w-full flex flex-col gap-4 bg-gray-900">
+      <div className="w-full h-32 bg-white rounded-lg  border-gray-300 flex justify-center items-center text-center mt-2">
+        <div>
+          <h1 className="text-black text-lg font-bold mb-1">የማስታወቂያ ቦታ</h1>
+          <p className="text-gray-500 text-xs">320x100px </p>
+        </div>
+      </div>
+      <div className="w-full h-[200px] md:h-[315px] bg-white relative overflow-hidden">
+        <div className="relative z-10 w-full h-full flex items-center justify-center">
+          <div className="text-center text-black">
+            <h1 className="text-2xl md:text-4xl font-bold mb-2">የባነር ቦታ</h1>
+            <p className="text-sm md:text-lg opacity-90">Banner Space</p>
+          </div>
+        </div>
+        {/* Decorative elements */}
+        <div className="absolute top-4 right-4 text-black/50 text-xs">
+          1200x315px
+        </div>
+      </div>
 
-      <aside className="w-full md:w-1/4 bg-white/5 backdrop-blur-md rounded-xl shadow-lg p-4 border border-purple-500/40">
-        <h2 className="text-purple-300 font-semibold text-lg mb-2">
-          Leaderboard
-        </h2>
-        <ul className="space-y-2 text-white text-sm">
-          {leaderboard.map((user, idx) => (
-            <li
-              key={idx}
-              className="flex justify-between items-center bg-gray-800 px-3 py-2 rounded-md"
-            >
-              <span className="flex items-center gap-2">
-                {user.emoji} {user.name}
-              </span>
-              <span className="text-green-400">{user.xp} XP</span>
-            </li>
-          ))}
-        </ul>
-      </aside>
-
-      <main className="flex flex-col items-center gap-5 w-full md:w-3/4">
+      <main className="flex flex-col items-center gap-5 w-full p-5">
         <div className="w-full bg-gray-800 py-4 px-4 rounded-xl text-xl font-bold text-white flex justify-between items-center shadow-md shadow-yellow-500/10 hover:shadow-yellow-500/30 transition">
           <h1 className="flex items-center gap-1">
             Balance:{" "}
@@ -62,8 +50,9 @@ function Home() {
           </h1>
           <button
             onClick={() => navigate("/deposit")}
-            className="px-4 py-1 bg-green-500 text-white rounded-full  transition shadow-lg hover:shadow-blue-400/40"
+            className="px-4 py-1 bg-green-500 text-white rounded-full transition shadow-lg hover:shadow-blue-400/40 flex items-center gap-2"
           >
+            <Download size={16} />
             Deposit
           </button>
         </div>
@@ -84,24 +73,12 @@ function Home() {
           </Link>
         </div>
 
-        <div className="w-full max-w-sm flex flex-col gap-2 text-white mt-2">
-          <h2 className="text-lg font-semibold text-gray-300 border-b border-gray-600 pb-1">
-            Recent Rooms
-          </h2>
-          <ul className="flex flex-col gap-2 text-sm">
-            {recentRooms.map((room, idx) => (
-              <li
-                key={idx}
-                className="flex justify-between items-center bg-gray-700 p-2 rounded-md hover:bg-gray-600 transition"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{room.avatar}</span>
-                  <span>{room.id}</span>
-                </div>
-                <span className="text-gray-400">{room.players} players</span>
-              </li>
-            ))}
-          </ul>
+        {/* Mobile Ad Space */}
+        <div className="w-full h-32 bg-white rounded-lg  border-gray-300 flex justify-center items-center text-center mt-2">
+          <div>
+            <h1 className="text-black text-lg font-bold mb-1">የማስታወቂያ ቦታ</h1>
+            <p className="text-gray-500 text-xs">320x100px </p>
+          </div>
         </div>
 
         <div className="w-full max-w-sm mt-6 p-4 rounded-xl bg-gray-800 text-gray-300">
@@ -109,9 +86,9 @@ function Home() {
             How It Works
           </h2>
           <ol className="list-decimal list-inside text-sm space-y-1 text-gray-400">
-            <li>Deposit money to your account</li>
-            <li>Join a game room or create one</li>
-            <li>Roll, compete, and win rewards</li>
+            <li>ገንዘብ አካውንቶ ውስት ያስገቡ</li>
+            <li>ጌም ይቀላቀሉ ወይንም አዲስ ይፍተሩ</li>
+            <li>የቻወቱ፣ ይወዳደሩ፣ ያሸንፉ።</li>
           </ol>
         </div>
       </main>

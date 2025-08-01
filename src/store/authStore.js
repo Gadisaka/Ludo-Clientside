@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import { API_URL } from "../../constants.js";
 
 const checkTokenExpiry = () => {
   const token = localStorage.getItem("auth-storage");
@@ -40,10 +41,7 @@ const useAuthStore = create(
       login: async (credentials) => {
         try {
           set({ loading: true, error: null });
-          const res = await axios.post(
-            "https://ludo-serverside.onrender.com/auth/login",
-            credentials
-          );
+          const res = await axios.post(`${API_URL}/auth/login`, credentials);
           const { user, token } = res.data;
           set({ user, token, loading: false });
         } catch (err) {
@@ -66,10 +64,7 @@ const useAuthStore = create(
       signup: async (data) => {
         try {
           set({ loading: true, error: null });
-          const res = await axios.post(
-            "https://ludo-serverside.onrender.com/auth/register",
-            data
-          );
+          const res = await axios.post(`${API_URL}/auth/register`, data);
           if (res.data2.user && res.data.token) {
             set({ user: res.data.user, token: res.data.token, loading: false });
           } else {

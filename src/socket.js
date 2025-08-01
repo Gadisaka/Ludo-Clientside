@@ -14,10 +14,9 @@ if (persisted) {
   }
 }
 // console.log(token, "frgegre");
-
 // Get token from localStorage
 
-const socket = io("https://ludo-serverside.onrender.com", {
+const socket = io("http://localhost:4002", {
   reconnection: true,
   reconnectionAttempts: Infinity,
   reconnectionDelay: 1000,

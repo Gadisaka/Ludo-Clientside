@@ -7,6 +7,8 @@ import {
   FaTrophy,
   FaTimes,
   FaCheck,
+  FaSignOutAlt,
+  FaWifi,
 } from "react-icons/fa";
 
 const Notifications = () => {
@@ -14,24 +16,34 @@ const Notifications = () => {
   const notifications = [
     {
       id: 1,
-      type: "game_invite",
-      title: "Game Invitation",
-      message: "John Doe invited you to play Ludo",
-      time: "2 minutes ago",
+      type: "withdraw",
+      title: "Withdrawal Successful",
+      message:
+        "Your withdrawal of 300 ETB has been processed and sent to your account",
+      time: "5 minutes ago",
       unread: true,
-      icon: FaUsers,
+      icon: FaSignOutAlt,
     },
     {
       id: 2,
+      type: "game_disconnect",
+      title: "Game Disconnected",
+      message: "You lost the game due to connection issues.",
+      time: "15 minutes ago",
+      unread: true,
+      icon: FaWifi,
+    },
+    {
+      id: 3,
       type: "transaction",
       title: "Deposit Successful",
       message: "Your deposit of 500 ETB has been processed successfully",
       time: "1 hour ago",
-      unread: true,
+      unread: false,
       icon: FaCreditCard,
     },
     {
-      id: 3,
+      id: 4,
       type: "game_result",
       title: "Game Won!",
       message: "Congratulations! You won 200 ETB in your last game",
@@ -40,32 +52,24 @@ const Notifications = () => {
       icon: FaTrophy,
     },
     {
-      id: 4,
-      type: "bonus",
-      title: "Daily Bonus",
-      message: "You received your daily login bonus of 50 ETB",
+      id: 5,
+      type: "withdraw",
+      title: "Withdrawal Pending",
+      message: "Your withdrawal request of 150 ETB is being processed",
       time: "1 day ago",
       unread: false,
-      icon: FaGift,
-    },
-    {
-      id: 5,
-      type: "system",
-      title: "Maintenance Notice",
-      message:
-        "System maintenance scheduled for tonight from 2:00 AM to 4:00 AM",
-      time: "2 days ago",
-      unread: false,
-      icon: FaBell,
+      icon: FaSignOutAlt,
     },
   ];
 
   const getNotificationColor = (type) => {
     switch (type) {
-      case "game_invite":
-        return "text-blue-400";
-      case "transaction":
+      case "withdraw":
         return "text-green-400";
+      case "game_disconnect":
+        return "text-red-400";
+      case "transaction":
+        return "text-blue-400";
       case "game_result":
         return "text-yellow-400";
       case "bonus":
