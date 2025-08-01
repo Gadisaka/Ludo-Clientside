@@ -17,22 +17,19 @@ if (persisted) {
 // console.log(token, "frgegre");
 // Get token from localStorage
 
-const socket = io(
-  { API_URL },
-  {
-    reconnection: true,
-    reconnectionAttempts: Infinity,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
-    timeout: 20000,
-    autoConnect: true,
-    transports: ["websocket", "polling"],
-    forceNew: true,
-    auth: {
-      token: token, // Include token in socket connection
-    },
-  }
-);
+const socket = io(API_URL, {
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  timeout: 20000,
+  autoConnect: true,
+  transports: ["websocket", "polling"],
+  forceNew: true,
+  auth: {
+    token: token, // Include token in socket connection
+  },
+});
 
 // Add connection event listeners for debugging
 socket.on("connect", () => {

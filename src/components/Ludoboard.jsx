@@ -36,6 +36,9 @@ const LudoBoard = ({ roomId }) => {
   const [gameResult, setGameResult] = useState(null);
   const [matchResults, setMatchResults] = useState(null);
 
+  // New state for backwards animation
+  const [backwardsAnimation, setBackwardsAnimation] = useState(null);
+
   // Get current player's color
   const playerColor = players.find((p) => p.id === socket.id)?.color;
   setCurrentPlayerColor(playerColor);
@@ -71,6 +74,73 @@ const LudoBoard = ({ roomId }) => {
     // Check if position starts with 'w' (win zone positions)
     return position && position.startsWith(`${color}WinZone`);
   };
+
+  // Check if position is home
+  const isHome = (position) => {
+    return (
+      position &&
+      (position.endsWith("h1") ||
+        position.endsWith("h2") ||
+        position.endsWith("h3") ||
+        position.endsWith("h4"))
+    );
+  };
+
+  // Generate backwards path from current position to home
+  const generateBackwardsPath = useCallback((color, currentPosition) => {
+    const colorPath = paths[color];
+    if (!colorPath) return [];
+
+    // If piece is already at home or in win zone, no backwards path needed
+    if (isHome(currentPosition) || isWinZone(currentPosition, color)) {
+      return [];
+    }
+
+    const currentIndex = colorPath.indexOf(currentPosition);
+    if (currentIndex === -1) return []; // Position not found in path
+
+    // Get positions from current to start in reverse order
+    return colorPath.slice(0, currentIndex + 1).reverse();
+  }, []);
+
+  // Animate piece backwards movement
+  const animatePieceBackwards = useCallback(
+    (color, pieceIndex, backwardsPath, currentPosition) => {
+      if (backwardsPath.length === 0) return;
+
+      console.log(
+        `[BACKWARDS ANIMATION] Starting backwards animation for ${color} piece ${pieceIndex} from ${currentPosition}`
+      );
+      console.log(`[BACKWARDS ANIMATION] Backwards path:`, backwardsPath);
+
+      // Set the piece as being animated backwards
+      setBackwardsAnimation({ color, pieceIndex, currentPosition });
+
+      // Animate through each position in the backwards path
+      backwardsPath.forEach((position, index) => {
+        setTimeout(() => {
+          console.log(
+            `[BACKWARDS ANIMATION] Moving ${color} piece ${pieceIndex} to position ${position} (step ${
+              index + 1
+            }/${backwardsPath.length})`
+          );
+          setStep({ color, index: pieceIndex, position });
+
+          // When animation completes, reset and send to home
+          if (index === backwardsPath.length - 1) {
+            setTimeout(() => {
+              console.log(
+                `[BACKWARDS ANIMATION] Completed backwards animation for ${color} piece ${pieceIndex}`
+              );
+              setBackwardsAnimation(null);
+              setStep(null);
+            }, 200);
+          }
+        }, index * 80); // 80ms delay between each step for faster backwards animation
+      });
+    },
+    []
+  );
 
   // Listen for initial game state
   useEffect(() => {
@@ -110,8 +180,21 @@ const LudoBoard = ({ roomId }) => {
       setNewPath(pieces.path);
     });
 
-    socket.on("piece_killed", ({ color, pieceIndex }) => {
-      console.log(`${color} piece ${pieceIndex} was killed!`);
+    socket.on("piece_killed", ({ color, pieceIndex, currentPosition }) => {
+      console.log(
+        `${color} piece ${pieceIndex} was killed at position ${currentPosition}!`
+      );
+
+      // Generate backwards path and animate
+      const backwardsPath = generateBackwardsPath(color, currentPosition);
+      if (backwardsPath.length > 0) {
+        animatePieceBackwards(
+          color,
+          pieceIndex,
+          backwardsPath,
+          currentPosition
+        );
+      }
     });
 
     socket.on("game_over", (results) => {
@@ -124,7 +207,14 @@ const LudoBoard = ({ roomId }) => {
       socket.off("piece_killed");
       socket.off("game_over");
     };
-  }, [setGameStatus, gameState, handleError, newPath]);
+  }, [
+    setGameStatus,
+    gameState,
+    handleError,
+    newPath,
+    generateBackwardsPath,
+    animatePieceBackwards,
+  ]);
 
   const handleTryAgain = () => {
     setGameResult(null);
@@ -447,12 +537,19 @@ const LudoBoard = ({ roomId }) => {
                 step && step.color === color && step.index === index;
               const shouldResetToPos = isStepMatch && step?.position === pos;
 
+              // Check if this piece is being animated backwards
+              const isBackwardsAnimating =
+                backwardsAnimation &&
+                backwardsAnimation.color === color &&
+                backwardsAnimation.pieceIndex === index;
+
               // Highlight movable tokens for current player only after rolling
               const isMovable =
                 isMyTurn &&
                 hasRolled &&
                 color === playerColor &&
-                movableTokenIndices.includes(index);
+                movableTokenIndices.includes(index) &&
+                !isBackwardsAnimating; // Don't allow movement during backwards animation
 
               return (
                 <Token
@@ -469,6 +566,7 @@ const LudoBoard = ({ roomId }) => {
                   path={newPath}
                   samePosition={isInSamePosition(pos)}
                   isMovable={isMovable}
+                  isBackwardsAnimating={isBackwardsAnimating}
                 />
               );
             })
