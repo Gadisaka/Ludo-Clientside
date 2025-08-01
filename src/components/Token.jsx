@@ -4,7 +4,15 @@ import { ludoBoxCoordinates } from "../constants/constants";
 import { paths } from "../logic/ludoPaths";
 import Slider from "@mui/material/Slider";
 
-function Token({ position, color, onClick, animate, samePosition, isMovable }) {
+function Token({
+  position,
+  color,
+  onClick,
+  animate,
+  samePosition,
+  isMovable,
+  isBackwardsAnimating,
+}) {
   const [currentPosition, setCurrentPosition] = useState(position);
   const [lightPosition, setLightPosition] = useState(null); // Position key for the light
   const lightTimeoutRef = useRef(null);
@@ -25,32 +33,74 @@ function Token({ position, color, onClick, animate, samePosition, isMovable }) {
     // If the light is already at the token, don't animate
     if (lightPosition === position) return;
 
-    // Start the light at the previous position (if any)
-    let startIdx = tokenIdx - 1;
-    if (startIdx < 0) {
-      setLightPosition(null);
-      return;
-    }
-    setLightPosition(pathArr[startIdx]);
-
-    // Animate the light to follow the token with a delay
-    function animateLight(idx) {
-      if (idx > tokenIdx) return;
-      setLightPosition(pathArr[idx]);
-      if (idx < tokenIdx) {
-        lightTimeoutRef.current = setTimeout(() => animateLight(idx + 1), 300);
-      } else {
-        // Remove the light after a short time at the final position
-        lightTimeoutRef.current = setTimeout(() => setLightPosition(null), 200);
+    // For backwards movement, light should appear behind the token
+    if (isBackwardsAnimating) {
+      // Start the light at the next position (ahead of current position)
+      let startIdx = tokenIdx + 1;
+      if (startIdx >= pathArr.length) {
+        setLightPosition(null);
+        return;
       }
+      setLightPosition(pathArr[startIdx]);
+
+      // Animate the light backwards to follow the token
+      function animateLightBackwards(idx) {
+        if (idx < tokenIdx) return;
+        setLightPosition(pathArr[idx]);
+        if (idx > tokenIdx) {
+          lightTimeoutRef.current = setTimeout(
+            () => animateLightBackwards(idx - 1),
+            80
+          );
+        } else {
+          // Remove the light after a short time at the final position
+          lightTimeoutRef.current = setTimeout(
+            () => setLightPosition(null),
+            200
+          );
+        }
+      }
+      lightTimeoutRef.current = setTimeout(
+        () => animateLightBackwards(startIdx - 1),
+        80
+      );
+    } else {
+      // Normal forward movement - light appears behind the token
+      let startIdx = tokenIdx - 1;
+      if (startIdx < 0) {
+        setLightPosition(null);
+        return;
+      }
+      setLightPosition(pathArr[startIdx]);
+
+      // Animate the light to follow the token with a delay
+      function animateLight(idx) {
+        if (idx > tokenIdx) return;
+        setLightPosition(pathArr[idx]);
+        if (idx < tokenIdx) {
+          lightTimeoutRef.current = setTimeout(
+            () => animateLight(idx + 1),
+            300
+          );
+        } else {
+          // Remove the light after a short time at the final position
+          lightTimeoutRef.current = setTimeout(
+            () => setLightPosition(null),
+            200
+          );
+        }
+      }
+      lightTimeoutRef.current = setTimeout(
+        () => animateLight(startIdx + 1),
+        300
+      );
     }
-    lightTimeoutRef.current = setTimeout(() => animateLight(startIdx + 1), 300);
 
     return () => {
       if (lightTimeoutRef.current) clearTimeout(lightTimeoutRef.current);
     };
     // eslint-disable-next-line
-  }, [position, color]);
+  }, [position, color, isBackwardsAnimating]);
 
   // Animate the token itself (existing logic)
   const animationFrameRef = useRef(null);
