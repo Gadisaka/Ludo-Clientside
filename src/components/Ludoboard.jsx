@@ -258,6 +258,9 @@ const LudoBoard = ({ roomId }) => {
     if (!path) return [];
     let movable = [];
     tokens.forEach((pos, idx) => {
+      // Skip if position is null or undefined
+      if (!pos) return;
+
       const isHome =
         pos.endsWith("h1") ||
         pos.endsWith("h2") ||
