@@ -1,66 +1,27 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   FaBell,
-  FaGift,
   FaCreditCard,
-  FaUsers,
   FaTrophy,
   FaTimes,
   FaCheck,
   FaSignOutAlt,
-  FaWifi,
 } from "react-icons/fa";
+import useWalletStore from "../store/walletStore";
 
 const Notifications = () => {
-  // Mock notifications data
-  const notifications = [
-    {
-      id: 1,
-      type: "withdraw",
-      title: "Withdrawal Successful",
-      message:
-        "Your withdrawal of 300 ETB has been processed and sent to your account",
-      time: "5 minutes ago",
-      unread: true,
-      icon: FaSignOutAlt,
-    },
-    {
-      id: 2,
-      type: "game_disconnect",
-      title: "Game Disconnected",
-      message: "You lost the game due to connection issues.",
-      time: "15 minutes ago",
-      unread: true,
-      icon: FaWifi,
-    },
-    {
-      id: 3,
-      type: "transaction",
-      title: "Deposit Successful",
-      message: "Your deposit of 500 ETB has been processed successfully",
-      time: "1 hour ago",
-      unread: false,
-      icon: FaCreditCard,
-    },
-    {
-      id: 4,
-      type: "game_result",
-      title: "Game Won!",
-      message: "Congratulations! You won 200 ETB in your last game",
-      time: "3 hours ago",
-      unread: false,
-      icon: FaTrophy,
-    },
-    {
-      id: 5,
-      type: "withdraw",
-      title: "Withdrawal Pending",
-      message: "Your withdrawal request of 150 ETB is being processed",
-      time: "1 day ago",
-      unread: false,
-      icon: FaSignOutAlt,
-    },
-  ];
+  const {
+    notifications,
+    unreadCount,
+    getNotifications,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+  } = useWalletStore();
+
+  // Fetch notifications on component mount
+  useEffect(() => {
+    getNotifications();
+  }, [getNotifications]);
 
   const getNotificationColor = (type) => {
     switch (type) {
@@ -81,19 +42,28 @@ const Notifications = () => {
     }
   };
 
-  const markAsRead = (id) => {
-    console.log(`Marking notification ${id} as read`);
+  const markAsRead = async (id) => {
+    try {
+      await markNotificationAsRead(id);
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
   };
 
   const deleteNotification = (id) => {
-    console.log(`Deleting notification ${id}`);
+    // For now, just mark as read instead of deleting
+    markAsRead(id);
   };
 
-  const markAllAsRead = () => {
-    console.log("Marking all notifications as read");
+  const markAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead();
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+    }
   };
 
-  const unreadCount = notifications.filter((n) => n.unread).length;
+  // const unreadCount = notifications.filter((n) => n.unread).length;
 
   return (
     <div className="min-h-screen bg-gray-900 p-4">
@@ -137,12 +107,43 @@ const Notifications = () => {
             </div>
           ) : (
             notifications.map((notification) => {
-              const IconComponent = notification.icon;
+              // Determine icon based on notification type
+              let IconComponent = FaBell; // default
+              let notificationType = "system";
+
+              if (notification.message.toLowerCase().includes("deposit")) {
+                IconComponent = FaCreditCard;
+                notificationType = "transaction";
+              } else if (
+                notification.message.toLowerCase().includes("withdraw")
+              ) {
+                IconComponent = FaSignOutAlt;
+                notificationType = "withdraw";
+              } else if (notification.message.toLowerCase().includes("game")) {
+                IconComponent = FaTrophy;
+                notificationType = "game_result";
+              }
+
+              // Format time
+              const timeAgo = (date) => {
+                const now = new Date();
+                const diff = now - new Date(date);
+                const minutes = Math.floor(diff / 60000);
+                const hours = Math.floor(diff / 3600000);
+                const days = Math.floor(diff / 86400000);
+
+                if (minutes < 60) return `${minutes} minutes ago`;
+                if (hours < 24) return `${hours} hours ago`;
+                return `${days} days ago`;
+              };
+
               return (
                 <div
-                  key={notification.id}
+                  key={notification._id}
                   className={`bg-gray-700 border border-gray-600 rounded-xl transition-all hover:bg-gray-650 ${
-                    notification.unread ? "border-l-4 border-l-blue-400" : ""
+                    notification.status === "UNREAD"
+                      ? "border-l-4 border-l-blue-400"
+                      : ""
                   }`}
                 >
                   <div className="p-4">
@@ -150,7 +151,7 @@ const Notifications = () => {
                       {/* Icon */}
                       <div
                         className={`p-2 rounded-full bg-gray-600 ${getNotificationColor(
-                          notification.type
+                          notificationType
                         )}`}
                       >
                         <IconComponent className="w-5 h-5" />
@@ -162,16 +163,18 @@ const Notifications = () => {
                           <div>
                             <h3
                               className={`font-semibold ${
-                                notification.unread
+                                notification.status === "UNREAD"
                                   ? "text-white"
                                   : "text-gray-300"
                               }`}
                             >
-                              {notification.title}
+                              {notification.type === "SUCCESS"
+                                ? "Success"
+                                : "Notification"}
                             </h3>
                             <p
                               className={`text-sm ${
-                                notification.unread
+                                notification.status === "UNREAD"
                                   ? "text-gray-300"
                                   : "text-gray-400"
                               }`}
@@ -179,15 +182,15 @@ const Notifications = () => {
                               {notification.message}
                             </p>
                             <p className="text-xs text-gray-500 mt-1">
-                              {notification.time}
+                              {timeAgo(notification.createdAt)}
                             </p>
                           </div>
 
                           {/* Action Buttons */}
                           <div className="flex items-center gap-1 ml-2">
-                            {notification.unread && (
+                            {notification.status === "UNREAD" && (
                               <button
-                                onClick={() => markAsRead(notification.id)}
+                                onClick={() => markAsRead(notification._id)}
                                 className="h-8 w-8 p-0 text-gray-400 hover:text-green-400 hover:bg-gray-600 rounded-full flex items-center justify-center"
                                 aria-label="Mark as read"
                               >
@@ -196,7 +199,7 @@ const Notifications = () => {
                             )}
                             <button
                               onClick={() =>
-                                deleteNotification(notification.id)
+                                deleteNotification(notification._id)
                               }
                               className="h-8 w-8 p-0 text-gray-400 hover:text-red-400 hover:bg-gray-600 rounded-full flex items-center justify-center"
                               aria-label="Delete notification"

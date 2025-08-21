@@ -20,6 +20,13 @@ function Token({
   // Helper: get the path array for this token's color
   const getPathArray = () => paths[color] || [];
 
+  // Update current position when position prop changes
+  useEffect(() => {
+    if (position && position !== currentPosition) {
+      setCurrentPosition(position);
+    }
+  }, [position, currentPosition]);
+
   // When the token moves, animate the light along the path with a delay
   useEffect(() => {
     if (!position) return;
@@ -165,12 +172,12 @@ function Token({
     };
   };
 
-  // Blinking background for movable tokens
+  // Enhanced token style with smooth transitions for bot movement
   const tokenStyle = {
     position: "absolute",
     left: `${left + 2.9 + addedPosition}%`, // Convert 10px to percentage (10/350 ≈ 2.9%)
     top: `${top + 2.9}%`, // Convert 10px to percentage (10/350 ≈ 2.9%)
-    transition: "left 0.3s ease, top 0.3s ease",
+    transition: "left 0.15s ease-out, top 0.15s ease-out", // Smooth transition for step-by-step movement
     zIndex: 2,
   };
 

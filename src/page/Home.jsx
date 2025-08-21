@@ -1,11 +1,17 @@
 import img from "../assets/ludoimage.png";
 import { Link, useNavigate } from "react-router-dom";
 import { Download, Wallet } from "lucide-react";
-
-const balance = 230.0;
+import { useEffect } from "react";
+import useWalletStore from "../store/walletStore";
 
 function Home() {
   const navigate = useNavigate();
+  const { balance, getBalance } = useWalletStore();
+
+  // Fetch balance on component mount
+  useEffect(() => {
+    getBalance();
+  }, [getBalance]);
 
   return (
     <div className="min-h-screen w-full flex flex-col gap-4 bg-gray-900">
@@ -45,7 +51,9 @@ function Home() {
                 <circle cx="12" cy="12" r="7" fill="#FFE066" />
                 <ellipse cx="12" cy="10" rx="4" ry="1.2" fill="#FFF9C4" />
               </svg>{" "}
-              {balance}
+              {balance !== undefined
+                ? `${balance.toFixed(2)} ብር`
+                : "Loading..."}
             </span>
           </h1>
           <button

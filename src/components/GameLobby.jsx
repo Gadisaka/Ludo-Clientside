@@ -1,8 +1,101 @@
 import React, { useState, useEffect } from "react";
 import socket from "../socket";
 import useUserStore from "../store/zutstand";
+import useWalletStore from "../store/walletStore";
 import GameDetails from "./GameDetails";
 import { useNavigate } from "react-router-dom";
+
+// Dice rolling animation component
+const DiceRollingAnimation = ({ isVisible, onComplete }) => {
+  const [diceValue, setDiceValue] = useState(1);
+  const [isRolling, setIsRolling] = useState(false);
+  const [particles, setParticles] = useState([]);
+
+  useEffect(() => {
+    if (isVisible && !isRolling) {
+      setIsRolling(true);
+
+      // Create particle effects
+      const newParticles = Array.from({ length: 20 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        size: Math.random() * 4 + 2,
+        color: ["#FFD700", "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4"][
+          Math.floor(Math.random() * 5)
+        ],
+      }));
+      setParticles(newParticles);
+
+      const rollInterval = setInterval(() => {
+        setDiceValue(Math.floor(Math.random() * 6) + 1);
+      }, 100);
+
+      // Stop rolling after 2 seconds
+      setTimeout(() => {
+        clearInterval(rollInterval);
+        setIsRolling(false);
+        setTimeout(onComplete, 500); // Wait a bit before hiding
+      }, 2000);
+    }
+  }, [isVisible, isRolling, onComplete]);
+
+  if (!isVisible) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      {/* Particle effects */}
+      {particles.map((particle) => (
+        <div
+          key={particle.id}
+          className="absolute animate-ping"
+          style={{
+            left: `${particle.x}%`,
+            top: `${particle.y}%`,
+            width: `${particle.size}px`,
+            height: `${particle.size}px`,
+            backgroundColor: particle.color,
+            borderRadius: "50%",
+            opacity: isRolling ? 0.8 : 0.3,
+            animationDelay: `${particle.id * 0.1}s`,
+          }}
+        />
+      ))}
+
+      <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white mb-6">
+            Rolling the Dice...
+          </h2>
+          <div className="relative">
+            {/* Dice with rolling animation */}
+            <div
+              className={`w-24 h-24 bg-white rounded-xl shadow-lg flex items-center justify-center text-4xl font-bold text-gray-800 transform transition-all duration-200 ${
+                isRolling ? "animate-bounce rotate-12 scale-110" : "scale-100"
+              }`}
+            >
+              {diceValue}
+            </div>
+
+            {/* Glowing effect */}
+            <div
+              className={`absolute inset-0 w-24 h-24 rounded-xl ${
+                isRolling
+                  ? "animate-pulse bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 opacity-30"
+                  : "bg-gradient-to-r from-green-400 to-blue-500 opacity-20"
+              } blur-xl -z-10`}
+            ></div>
+          </div>
+
+          {/* Rolling text */}
+          <p className="text-white/80 mt-4 text-lg">
+            {isRolling ? "🎲 Rolling..." : `🎯 You got ${diceValue}!`}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const GameLobby = () => {
   const [playerName, setPlayerName] = useState("");
@@ -10,11 +103,28 @@ const GameLobby = () => {
   const [error, setError] = useState("");
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(true);
+  const [showDiceAnimation, setShowDiceAnimation] = useState(true);
+  const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
   const username = useUserStore((state) => state.username);
+  const { balance, getBalance } = useWalletStore();
   const [showGameDetails, setShowGameDetails] = useState(false);
   const navigate = useNavigate();
 
-  const balance = 230.0;
+  // Page reload and dice animation on component mount
+  useEffect(() => {
+    // Show dice animation first
+    setShowDiceAnimation(true);
+
+    // Reload available games
+    if (socket.connected) {
+      socket.emit("get_available_games");
+    }
+  }, []);
+
+  // Fetch balance on component mount
+  useEffect(() => {
+    getBalance();
+  }, [getBalance]);
 
   useEffect(() => {
     if (username) {
@@ -110,67 +220,103 @@ const GameLobby = () => {
     navigate(`/game/${roomId}`);
   };
 
+  const handleDiceAnimationComplete = () => {
+    setShowDiceAnimation(false);
+    setShowWelcomeMessage(true);
+
+    // Hide welcome message after 3 seconds
+    setTimeout(() => {
+      setShowWelcomeMessage(false);
+    }, 3000);
+  };
+
   return (
-    <div className="flex  flex-col items-center gap-6 p-8 bg-gray-800 rounded-lg shadow-xl max-w-2xl mx-auto">
-      <div className="flex justify-between items-center w-full h-ful">
-        <div className="flex justify-center   items-center gap-1">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width={20}
-            height={20}
-            viewBox="0 0 24 24"
-            fill="none"
-            className="inline-block"
-          >
-            <circle cx="12" cy="12" r="10" fill="#FFD700" />
-            <ellipse cx="12" cy="16" rx="7" ry="2" fill="#F6C700" />
-            <circle cx="12" cy="12" r="7" fill="#FFE066" />
-            <ellipse cx="12" cy="10" rx="4" ry="1.2" fill="#FFF9C4" />
-          </svg>
-          <h1 className="text-xl font-normal text-white ">{balance}</h1>
+    <>
+      {/* Dice Rolling Animation */}
+      <DiceRollingAnimation
+        isVisible={showDiceAnimation}
+        onComplete={handleDiceAnimationComplete}
+      />
+
+      {/* Welcome Message */}
+      {showWelcomeMessage && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-40">
+          <div className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-6 py-3 rounded-full shadow-lg animate-bounce">
+            <h3 className="text-lg font-bold">
+              🎮 Welcome to the Game Lobby! 🎮
+            </h3>
+          </div>
         </div>
-        <div className="flex justify-between items-center gap-2 ">
-          <button
-            onClick={() => setShowGameDetails(true)}
-            className="px-4 py-2 text-white rounded-2xl font-semibold  bg-gradient-to-r from-green-400 via-green-700 to-green-600 hover:from-green-500  hover:to-green-700 transition-colors"
-          >
-            New +
-          </button>
-          <button
-            onClick={() => socket.emit("get_available_games")}
-            disabled={!isConnected}
-            title="Reload games"
-            className={`p-2 rounded-full hover:bg-gray-700 transition-colors ${
-              !isConnected ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-          >
-            {/* Reload Icon */}
+      )}
+
+      {/* Main GameLobby Content */}
+      <div className="flex  flex-col items-center gap-6 p-8 bg-gray-800 rounded-lg shadow-xl max-w-2xl mx-auto">
+        <div className="flex justify-between items-center w-full h-ful">
+          <div className="flex justify-center   items-center gap-1">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width={20}
               height={20}
-              fill="none"
               viewBox="0 0 24 24"
-              stroke="currentColor"
-              className="text-white"
+              fill="none"
+              className="inline-block"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582M20 20v-5h-.581M19.418 9A7.978 7.978 0 0012 4c-3.042 0-5.824 1.721-7.418 4M4.582 15A7.978 7.978 0 0012 20c3.042 0 5.824-1.721 7.418-4"
-              />
+              <circle cx="12" cy="12" r="10" fill="#FFD700" />
+              <ellipse cx="12" cy="16" rx="7" ry="2" fill="#F6C700" />
+              <circle cx="12" cy="12" r="7" fill="#FFE066" />
+              <ellipse cx="12" cy="10" rx="4" ry="1.2" fill="#FFF9C4" />
             </svg>
-          </button>
+            <h1 className="text-xl font-normal text-white ">
+              {balance !== undefined
+                ? `${balance.toFixed(2)} ብር`
+                : "Loading..."}
+            </h1>
+          </div>
+          <div className="flex justify-between items-center gap-2 ">
+            <button
+              onClick={() => setShowGameDetails(true)}
+              className="px-4 py-2 text-white rounded-2xl font-semibold  bg-gradient-to-r from-green-400 via-green-700 to-green-600 hover:from-green-500  hover:to-green-700 transition-colors"
+            >
+              New +
+            </button>
+            <button
+              onClick={() => {
+                setShowDiceAnimation(true);
+                socket.emit("get_available_games");
+              }}
+              disabled={!isConnected}
+              title="Reload games with dice animation"
+              className={`p-2 rounded-full hover:bg-gray-700 transition-colors ${
+                !isConnected ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              {/* Reload Icon */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width={20}
+                height={20}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                className="text-white"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582M20 20v-5h-.581M19.418 9A7.978 7.978 0 0012 4c-3.042 0-5.824 1.721-7.418 4M4.582 15A7.978 7.978 0 0012 20c3.042 0 5.824-1.721 7.418-4"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
-      </div>
 
-      {isConnecting && (
-        <div className="text-yellow-500 mb-4">Connecting to server...</div>
-      )}
+        {isConnecting && (
+          <div className="text-yellow-500 mb-4">Connecting to server...</div>
+        )}
 
-      <div className="w-full max-w-md">
-        {/* <input
+        <div className="w-full max-w-md">
+          {/* <input
           type="text"
           placeholder="Enter your name"
           value={playerName}
@@ -179,66 +325,67 @@ const GameLobby = () => {
           disabled={!isConnected}
         /> */}
 
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+          {error && <p className="text-red-500 mb-4">{error}</p>}
 
-        <div className="flex flex-col gap-4">
-          {isConnected ? (
-            availableGames && availableGames.length > 0 ? (
-              <>
-                <h2 className="text-xl text-white mb-2">Available Games:</h2>
-                <div className="space-y-3">
-                  {availableGames.map((game) => (
-                    <div
-                      key={game.roomId}
-                      className="p-[1px] rounded-xl border border-transparent bg-gradient-to-r from-red-500 via-blue-500 to-purple-500 animate-gradient-x-border"
-                    >
-                      <div className="flex items-center justify-between bg-gray-700 p-4 rounded-xl">
-                        <div className="text-white">
-                          <p>
-                            <span className="text-yellow-500 font-bold">
-                              Host:
-                            </span>{" "}
-                            {game.hostName}
-                          </p>
-                          <p className="text-sm text-gray-300">
-                            Players: {game.playerCount}/2
-                          </p>
-                          <p className="text-sm text-gray-300">
-                            Stake: {game.stake}
-                          </p>
-                          <p className="text-sm text-gray-300">
-                            Required Pieces: {game.requiredPieces}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => handleJoinGame(game.roomId)}
-                          className="px-4 py-1 text-white rounded-full font-semibold 
+          <div className="flex flex-col gap-4">
+            {isConnected ? (
+              availableGames && availableGames.length > 0 ? (
+                <>
+                  <h2 className="text-xl text-white mb-2">Available Games:</h2>
+                  <div className="space-y-3">
+                    {availableGames.map((game) => (
+                      <div
+                        key={game.roomId}
+                        className="p-[1px] rounded-xl border border-transparent bg-gradient-to-r from-red-500 via-blue-500 to-purple-500 animate-gradient-x-border"
+                      >
+                        <div className="flex items-center justify-between bg-gray-700 p-4 rounded-xl">
+                          <div className="text-white">
+                            <p>
+                              <span className="text-yellow-500 font-bold">
+                                Host:
+                              </span>{" "}
+                              {game.hostName}
+                            </p>
+                            <p className="text-sm text-gray-300">
+                              Players: {game.playerCount}/2
+                            </p>
+                            <p className="text-sm text-gray-300">
+                              Stake: {game.stake}
+                            </p>
+                            <p className="text-sm text-gray-300">
+                              Required Pieces: {game.requiredPieces}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleJoinGame(game.roomId)}
+                            className="px-4 py-1 text-white rounded-full font-semibold 
                           bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 
                           bg-[length:300%_300%] animate-gradient-x transition-colors duration-300"
-                        >
-                          Join Game
-                        </button>
+                          >
+                            Join Game
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="text-center text-gray-300">
+                  No available games. Create one to start playing!
                 </div>
-              </>
-            ) : (
-              <div className="text-center text-gray-300">
-                No available games. Create one to start playing!
-              </div>
-            )
-          ) : null}
-        </div>
+              )
+            ) : null}
+          </div>
 
-        {showGameDetails && (
-          <GameDetails
-            onClose={() => setShowGameDetails(false)}
-            onGameStart={handleGameCreated}
-          />
-        )}
+          {showGameDetails && (
+            <GameDetails
+              onClose={() => setShowGameDetails(false)}
+              onGameStart={handleGameCreated}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

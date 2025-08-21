@@ -1,18 +1,37 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaArrowLeft,
   FaCreditCard,
   FaMobileAlt,
   FaUniversity,
   FaWallet,
+  FaCheckCircle,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import useWalletStore from "../../store/walletStore";
 
 const Deposit = () => {
   const navigate = useNavigate();
+  const { 
+    balance, 
+    loading, 
+    error, 
+    deposit, 
+    getBalance, 
+    clearError 
+  } = useWalletStore();
+  
   const [selectedMethod, setSelectedMethod] = useState("");
   const [amount, setAmount] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // Fetch balance on component mount
+  useEffect(() => {
+    getBalance();
+  }, [getBalance]);
 
   const paymentMethods = [
     {
@@ -47,8 +66,25 @@ const Deposit = () => {
 
   const handleDeposit = async () => {
     if (!selectedMethod || !amount) return;
-    // Here you would integrate with Chapa API
-    alert(`Deposit of ${amount} ብር via ${selectedMethod} initiated!`);
+    
+    try {
+      clearError();
+      const result = await deposit(amount, selectedMethod, phoneNumber);
+      
+      setSuccessMessage(`Successfully deposited ${amount} ብር via ${selectedMethod}!`);
+      setShowSuccess(true);
+      
+      // Reset form
+      setAmount("");
+      setSelectedMethod("");
+      setPhoneNumber("");
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => setShowSuccess(false), 5000);
+      
+    } catch (error) {
+      console.error("Deposit failed:", error);
+    }
   };
 
   return (
@@ -65,6 +101,36 @@ const Deposit = () => {
           </button>
           <h1 className="text-2xl font-bold text-white">Deposit Funds</h1>
         </div>
+
+        {/* Current Balance */}
+        <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 mb-4">
+          <div className="text-center">
+            <p className="text-gray-400 text-sm">Current Balance</p>
+            <p className="text-3xl font-bold text-white">
+              {loading ? "Loading..." : `${balance.toFixed(2)} ብር`}
+            </p>
+          </div>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-900/20 border border-red-700 rounded-xl p-4 mb-4">
+            <div className="flex items-center space-x-3 text-red-400">
+              <FaExclamationTriangle className="w-5 h-5" />
+              <p className="text-sm">{error}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Success Message */}
+        {showSuccess && (
+          <div className="bg-green-900/20 border border-green-700 rounded-xl p-4 mb-4">
+            <div className="flex items-center space-x-3 text-green-400">
+              <FaCheckCircle className="w-5 h-5" />
+              <p className="text-sm">{successMessage}</p>
+            </div>
+          </div>
+        )}
         {/* Amount Input */}
         <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 mb-4">
           <label htmlFor="amount" className="block text-gray-300 mb-2">
@@ -140,10 +206,17 @@ const Deposit = () => {
         {/* Deposit Button */}
         <button
           onClick={handleDeposit}
-          disabled={!selectedMethod || !amount}
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 text-lg rounded-xl disabled:bg-gray-600"
+          disabled={!selectedMethod || !amount || loading}
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 text-lg rounded-xl disabled:bg-gray-600 flex items-center justify-center"
         >
-          Deposit {amount ? `${amount} ብር` : "Funds"}
+          {loading ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+              Processing...
+            </>
+          ) : (
+            `Deposit ${amount ? `${amount} ብር` : "Funds"}`
+          )}
         </button>
         {/* Security Notice */}
         <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 mt-4">

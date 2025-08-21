@@ -61,6 +61,125 @@ const LudoBoard = ({ roomId }) => {
     );
   }, [socket.id, currentTurn, isMyTurn]);
 
+  // Helper function to generate step-by-step path for bot movement
+  const generateBotMovementPath = useCallback(
+    (color, fromPosition, toPosition) => {
+      console.log(`[GENERATE_BOT_PATH] Called with:`, {
+        color,
+        fromPosition,
+        toPosition,
+      });
+
+      const colorPath = paths[color];
+      if (!colorPath) {
+        console.log(`[GENERATE_BOT_PATH] No path found for color:`, color);
+        return [];
+      }
+
+      // Handle special cases
+      if (fromPosition.startsWith(`${color[0]}h`)) {
+        // Moving from home - start from the first position on the path
+        const startPos = colorPath[0];
+        if (startPos === toPosition) return [startPos];
+
+        const startIndex = colorPath.indexOf(startPos);
+        const endIndex = colorPath.indexOf(toPosition);
+        if (startIndex === -1 || endIndex === -1) return [];
+
+        return colorPath.slice(startIndex, endIndex + 1);
+      }
+
+      if (toPosition === `${color}WinZone`) {
+        // Moving to win zone - use the last 6 positions
+        const lastSixPositions = colorPath.slice(-6);
+        const fromIndex = lastSixPositions.indexOf(fromPosition);
+        if (fromIndex === -1) return [];
+
+        return lastSixPositions.slice(fromIndex + 1);
+      }
+
+      // Normal movement along the path
+      const fromIndex = colorPath.indexOf(fromPosition);
+      const toIndex = colorPath.indexOf(toPosition);
+
+      if (fromIndex === -1 || toIndex === -1) return [];
+
+      // Handle wrapping around the board
+      if (toIndex < fromIndex) {
+        // Wrapping around - go from current to end, then from start to target
+        const firstPart = colorPath.slice(fromIndex);
+        const secondPart = colorPath.slice(0, toIndex + 1);
+        return [...firstPart, ...secondPart];
+      } else {
+        return colorPath.slice(fromIndex + 1, toIndex + 1);
+      }
+    },
+    []
+  );
+
+  // Function to animate bot movement step by step
+  const animateBotMovement = useCallback(
+    (color, pieceIndex, fromPosition, toPosition) => {
+      console.log(`[ANIMATE_BOT_MOVEMENT] Called with:`, {
+        color,
+        pieceIndex,
+        fromPosition,
+        toPosition,
+      });
+
+      const movementPath = generateBotMovementPath(
+        color,
+        fromPosition,
+        toPosition
+      );
+
+      if (movementPath.length === 0) {
+        // No path to animate, just update the position
+        console.log(
+          `[ANIMATE_BOT_MOVEMENT] No path to animate, setting final position directly`
+        );
+        setStep({ color, index: pieceIndex, position: toPosition });
+        return;
+      }
+
+      console.log(
+        `[BOT ANIMATION] Animating ${color} piece ${pieceIndex} from ${fromPosition} to ${toPosition}`
+      );
+      console.log(`[BOT ANIMATION] Movement path:`, movementPath);
+
+      // Start the step-by-step animation
+      let currentStep = 0;
+      const animateStep = () => {
+        if (currentStep < movementPath.length) {
+          const currentPosition = movementPath[currentStep];
+          console.log(
+            `[BOT ANIMATION] Step ${currentStep + 1}/${
+              movementPath.length
+            }: ${currentPosition}`
+          );
+
+          setStep({ color, index: pieceIndex, position: currentPosition });
+          currentStep++;
+
+          // Continue to next step after a delay
+          setTimeout(animateStep, 150); // 150ms delay between steps for smooth animation
+        } else {
+          // Animation complete, set final position
+          console.log(
+            `[BOT ANIMATION] Animation complete for ${color} piece ${pieceIndex}`
+          );
+          setStep({ color, index: pieceIndex, position: toPosition });
+
+          // Clean up animation state
+        }
+      };
+
+      // Start animation after a short delay
+      setTimeout(animateStep, 100);
+    },
+    [generateBotMovementPath]
+  );
+
   // Handle socket errors
   const handleError = useCallback((message) => {
     setError(message);
@@ -171,13 +290,63 @@ const LudoBoard = ({ roomId }) => {
     }
   }, [step, matchResults]);
 
+  // Effect to handle game result when game ends (for bot wins or other scenarios)
+  useEffect(() => {
+    if (matchResults && !gameResult) {
+      const isWinner = matchResults.winner.id === socket.id;
+      setGameResult({
+        isWinner,
+        winner: matchResults.winner,
+        loser: matchResults.loser,
+        gameDuration: matchResults.gameDuration,
+        requiredPieces: matchResults.requiredPieces,
+        stake: matchResults.stake,
+      });
+    }
+  }, [matchResults, gameResult]);
+
   // Listen for game events
   useEffect(() => {
     socket.on("error_message", handleError);
 
     socket.on("piece_moved", (pieces) => {
-      setGameState(pieces);
-      setNewPath(pieces.path);
+      console.log("[PIECE_MOVED] Event received:", pieces);
+      console.log("[PIECE_MOVED] Current turn:", currentTurn);
+      console.log("[PIECE_MOVED] Players:", players);
+
+      // Check if this is a bot move that needs animation
+      const currentPlayer = players.find((p) => p.id === currentTurn);
+      console.log("[PIECE_MOVED] Current player:", currentPlayer);
+
+      if (currentPlayer && currentPlayer.isBot) {
+        console.log("[PIECE_MOVED] Bot move detected, starting animation");
+        // This is a bot move - find which piece moved and animate it
+        const newPieces = pieces.pieces || pieces;
+        Object.entries(newPieces).forEach(([color, colorPieces]) => {
+          colorPieces.forEach((newPosition, pieceIndex) => {
+            const oldPosition = gameState.pieces[color]?.[pieceIndex];
+            if (oldPosition && newPosition && oldPosition !== newPosition) {
+              // Piece moved - animate the movement
+              console.log(
+                `[BOT MOVE] Bot ${color} piece ${pieceIndex} moved from ${oldPosition} to ${newPosition}`
+              );
+              animateBotMovement(color, pieceIndex, oldPosition, newPosition);
+            }
+          });
+        });
+
+        // For bot moves, delay updating the game state until animation completes
+        setTimeout(() => {
+          console.log("[PIECE_MOVED] Updating game state after bot animation");
+          setGameState(pieces);
+          setNewPath(pieces.path);
+        }, 1000); // Wait for animation to complete
+      } else {
+        console.log("[PIECE_MOVED] Human move detected, updating immediately");
+        // Human player move - update immediately
+        setGameState(pieces);
+        setNewPath(pieces.path);
+      }
     });
 
     socket.on("piece_killed", ({ color, pieceIndex, currentPosition }) => {
@@ -214,6 +383,9 @@ const LudoBoard = ({ roomId }) => {
     newPath,
     generateBackwardsPath,
     animatePieceBackwards,
+    animateBotMovement,
+    players,
+    currentTurn,
   ]);
 
   const handleTryAgain = () => {

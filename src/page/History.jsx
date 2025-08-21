@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaTrophy,
   FaClock,
@@ -6,55 +6,103 @@ import {
   FaArrowLeft,
   FaCalendar,
   FaBullseye,
+  FaSpinner,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import useAuthStore from "../store/authStore";
 
 const GameHistory = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const [gameHistory, setGameHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock game history data - in a real app this would come from an API
-  const [gameHistory] = useState([
-    {
-      id: 1,
-      gameType: "Quick Match",
-      result: "won",
-      amount: 150,
-      players: 2,
-      date: "2024-01-15",
-      time: "14:30",
-      duration: "12 min",
-    },
-    {
-      id: 2,
-      gameType: "Quick Match",
-      result: "lost",
-      amount: -50,
-      players: 2,
-      date: "2024-01-15",
-      time: "12:15",
-      duration: "8 min",
-    },
-    {
-      id: 3,
-      gameType: "Quick Match",
-      result: "won",
-      amount: 300,
-      players: 2,
-      date: "2024-01-14",
-      time: "18:45",
-      duration: "25 min",
-    },
-    {
-      id: 4,
-      gameType: "Quick Match",
-      result: "lost",
-      amount: -75,
-      players: 2,
-      date: "2024-01-13",
-      time: "16:30",
-      duration: "15 min",
-    },
-  ]);
+  // Fetch game history on component mount
+  useEffect(() => {
+    fetchGameHistory();
+  }, []);
+
+  const fetchGameHistory = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch game history from the backend
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_API_URL || "http://localhost:5000"
+        }/games/history`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch game history");
+      }
+
+      const data = await response.json();
+
+      // Transform the data to match our component's expected format
+      const transformedHistory = data.games.map((game) => {
+        const isWinner = game.winnerId === user?.id;
+        const hasBots = game.players && game.players.some((p) => p.isBot);
+        const cutPercentage = import.meta.env.VITE_GAME_CUT_PERCENTAGE || 10; // Default to 10%
+
+        return {
+          id: game._id,
+          gameType: hasBots
+            ? "Bot Match"
+            : game.players && game.players.length === 2
+            ? "2-Player Match"
+            : "Multi-Player Match",
+          result: isWinner ? "won" : "lost",
+          amount: isWinner
+            ? 2 * game.stake - (2 * game.stake * cutPercentage) / 100 // Use dynamic cut percentage
+            : -game.stake, // Lost stake
+          playerCount: game.players ? game.players.length : 2, // Default to 2 if not available
+          date: new Date(game.createdAt).toISOString().split("T")[0],
+          time: new Date(game.createdAt).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          duration: calculateGameDuration(game.createdAt, game.updatedAt),
+          stake: game.stake,
+          roomId: game.roomId,
+          players: game.players || [],
+          hasBots: hasBots || false,
+        };
+      });
+
+      setGameHistory(transformedHistory);
+    } catch (err) {
+      console.error("Error fetching game history:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateGameDuration = (startTime, endTime) => {
+    if (!startTime || !endTime) return "Unknown";
+
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const durationMs = end - start;
+
+    const minutes = Math.floor(durationMs / (1000 * 60));
+    const seconds = Math.floor((durationMs % (1000 * 60)) / 1000);
+
+    if (minutes > 0) {
+      return `${minutes}m ${seconds}s`;
+    }
+    return `${seconds}s`;
+  };
 
   const getResultIcon = (result) => {
     if (result === "won") {
@@ -92,10 +140,50 @@ const GameHistory = () => {
                 <span>Game History</span>
               </div>
             </div>
+            <button
+              onClick={fetchGameHistory}
+              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center space-x-2"
+            >
+              <FaClock className="w-4 h-4" />
+              <span>Refresh</span>
+            </button>
           </div>
         </div>
         {/* Game History Content */}
-        {gameHistory.length === 0 ? (
+        {loading ? (
+          <div className="bg-gray-900 border border-gray-700 shadow-2xl rounded-xl">
+            <div className="p-12 text-center">
+              <div className="w-24 h-24 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaSpinner className="w-12 h-12 text-blue-400 animate-spin" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-2">
+                Loading Game History
+              </h3>
+              <p className="text-gray-400 text-lg">
+                Please wait while we fetch your game history...
+              </p>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="bg-gray-900 border border-gray-700 shadow-2xl rounded-xl">
+            <div className="p-12 text-center">
+              <div className="w-24 h-24 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaBullseye className="w-12 h-12 text-red-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-2">
+                Error Loading History
+              </h3>
+              <p className="text-gray-400 text-lg mb-6">{error}</p>
+              <button
+                onClick={fetchGameHistory}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        ) : gameHistory.length === 0 ? (
           <div className="bg-gray-900 border border-gray-700 shadow-2xl rounded-xl">
             <div className="p-12 text-center">
               <div className="w-24 h-24 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -179,11 +267,16 @@ const GameHistory = () => {
                             </span>
                             <span className="flex items-center space-x-1">
                               <FaUsers className="w-4 h-4" />
-                              <span>{game.players} players</span>
+                              <span>{game.playerCount} players</span>
                             </span>
                             <span className="flex items-center space-x-1">
                               <FaClock className="w-4 h-4" />
                               <span>{game.duration}</span>
+                            </span>
+                            <span className="flex items-center space-x-1">
+                              <span className="text-yellow-400 font-medium">
+                                Stake: {game.stake} ብር
+                              </span>
                             </span>
                           </div>
                         </div>

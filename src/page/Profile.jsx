@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaUser,
   FaWallet,
@@ -10,63 +10,43 @@ import {
   FaMinus,
 } from "react-icons/fa";
 import useAuthStore from "../store/authStore";
+import useWalletStore from "../store/walletStore";
 import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
-  const [balance] = useState(2450.75);
-  const [transactions] = useState([
-    {
-      id: 1,
-      type: "deposit",
-      amount: 500,
-      date: "2024-01-15",
-      time: "14:30",
-      status: "completed",
-    },
-    {
-      id: 2,
-      type: "win",
-      amount: 150,
-      date: "2024-01-15",
-      time: "12:15",
-      status: "completed",
-    },
-    {
-      id: 3,
-      type: "withdraw",
-      amount: -200,
-      date: "2024-01-14",
-      time: "18:45",
-      status: "completed",
-    },
-    {
-      id: 4,
-      type: "deposit",
-      amount: 1000,
-      date: "2024-01-14",
-      time: "10:20",
-      status: "completed",
-    },
-    {
-      id: 5,
-      type: "loss",
-      amount: -75,
-      date: "2024-01-13",
-      time: "16:30",
-      status: "completed",
-    },
-    {
-      id: 6,
-      type: "win",
-      amount: 300,
-      date: "2024-01-12",
-      time: "20:15",
-      status: "completed",
-    },
-  ]);
+  const { balance, transactions, getBalance, getTransactions } =
+    useWalletStore();
+  const [recentTransactions, setRecentTransactions] = useState([]);
 
   const logout = useAuthStore((state) => state.logout);
   const navigate = useNavigate();
+
+  // Fetch balance and transactions on component mount
+  useEffect(() => {
+    getBalance();
+    getTransactions();
+  }, [getBalance, getTransactions]);
+
+  // Update recent transactions when transactions change
+  useEffect(() => {
+    if (transactions.length > 0) {
+      const recent = transactions.slice(0, 6).map((tx) => ({
+        id: tx._id,
+        type: tx.type.toLowerCase(),
+        amount:
+          tx.type === "WITHDRAW" || tx.type === "GAME_STAKE"
+            ? -tx.amount
+            : tx.amount,
+        date: new Date(tx.createdAt).toISOString().split("T")[0],
+        time: new Date(tx.createdAt).toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        status: tx.status.toLowerCase(),
+      }));
+      setRecentTransactions(recent);
+    }
+  }, [transactions]);
 
   const getTransactionIcon = (type) => {
     switch (type) {
@@ -74,6 +54,10 @@ const Profile = () => {
         return <FaArrowUp className="w-4 h-4 text-green-400" />;
       case "withdraw":
         return <FaArrowDown className="w-4 h-4 text-red-400" />;
+      case "game_stake":
+        return <FaMinus className="w-4 h-4 text-red-400" />;
+      case "game_winnings":
+        return <FaTrophy className="w-4 h-4 text-yellow-400" />;
       case "win":
         return <FaTrophy className="w-4 h-4 text-yellow-400" />;
       case "loss":
@@ -191,7 +175,7 @@ const Profile = () => {
               className="space-y-1 max-h-96 overflow-y-auto"
               style={{ maxHeight: "24rem" }}
             >
-              {transactions.slice(0, 6).map((transaction) => (
+              {recentTransactions.map((transaction) => (
                 <div
                   key={transaction.id}
                   className="flex items-center justify-between p-4 hover:bg-gray-800 transition-colors duration-150 border-b border-gray-700 last:border-b-0"
@@ -206,6 +190,10 @@ const Profile = () => {
                           ? "Game Won"
                           : transaction.type === "loss"
                           ? "Game Lost"
+                          : transaction.type === "game_stake"
+                          ? "Game Stake"
+                          : transaction.type === "game_winnings"
+                          ? "Game Won"
                           : transaction.type}
                       </p>
                       <p className="text-sm text-gray-400">

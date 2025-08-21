@@ -18,6 +18,28 @@
 .animate-spin {
   animation: spin 1s linear infinite;
 }
+
+/* Smooth bot movement animation */
+@keyframes botMove {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.bot-moving {
+  animation: botMove 0.15s ease-out;
+}
+
+/* Enhanced transitions for smooth movement */
+.piece {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
 /* 
 * {
   margin: 0;

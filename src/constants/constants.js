@@ -53,6 +53,8 @@ export const allPath = [
   "p43",
 ];
 
+// Paths are now defined in ludoPaths.js
+// These exports are kept for backward compatibility
 export const redPath = allPath.filter((pos) => pos !== "p37");
 export const greenPath = allPath.filter((pos) => pos !== "p3");
 export const bluePath = allPath.filter((pos) => pos !== "p70");

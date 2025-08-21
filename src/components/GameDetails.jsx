@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import socket from "../socket";
 import useUserStore from "../store/zutstand";
 import { crown } from "./Dies";
+import useWalletStore from "../store/walletStore";
+import { FaArrowLeft } from "react-icons/fa";
 
 const GameDetails = ({ onClose, onGameStart }) => {
   const [step, setStep] = useState(1); // 1: stake, 2: pieces, 3: confirmation
@@ -17,7 +19,12 @@ const GameDetails = ({ onClose, onGameStart }) => {
 
   const stakeOptions = [20, 30, 40, 50, 100, 200, 500, 1000];
   const pieceOptions = [1, 2, 3, 4];
-  const balance = 230.0;
+  // const balance = 230.0;
+  const { balance, getBalance } = useWalletStore();
+
+  useEffect(() => {
+    getBalance();
+  }, [getBalance]);
 
   useEffect(() => {
     if (username) {
@@ -66,8 +73,13 @@ const GameDetails = ({ onClose, onGameStart }) => {
   return (
     <div className="fixed  left-0 right-0 text-yellow-500 pt-[1px] px-[1px] rounded-xl border border-transparent bg-gradient-to-r from-red-500 via-blue-500 to-purple-500 animate-gradient-x-border">
       {step === 1 && (
-        <div className="space-y-4 bg-gray-700 p-4 rounded-xl">
-          <h2 className="text-xl font-bold text-center">Select Stake Amount</h2>
+        <div className="space-y-4 bg-gray-700 p-4 rounded-xl flex flex-col justify-center items-center">
+          <div className="flex justify-between items-center w-full">
+            <h2 className="text-xl font-bold text-center">
+              Select Stake Amount
+            </h2>
+            <button onClick={onClose}>X</button>
+          </div>
           <div className="grid grid-cols-4 gap-3">
             {stakeOptions.map((stake) => (
               <button
@@ -85,11 +97,38 @@ const GameDetails = ({ onClose, onGameStart }) => {
               </button>
             ))}
           </div>
+          <div className="flex gap-2 w-full justify-center items-center rounded-lg hover:bg-gray-540 transition">
+            <input
+              type="text"
+              placeholder="Enter amount"
+              onChange={(e) => setSelectedStake(e.target.value)}
+              className="p-3 flex flex-col justify-center items-center bg-gray-900 rounded-lg hover:bg-gray-540 transition"
+            />
+            <button
+              onClick={() => handleStakeSelect(selectedStake)}
+              className={`p-3 flex flex-col justify-center items-center  rounded-lg hover:bg-gray-540 transition ${
+                isLoading || selectedStake > balance
+                  ? "bg-gray-900/50"
+                  : "bg-gray-900"
+              }`}
+              disabled={isLoading || selectedStake > balance}
+            >
+              Enter
+            </button>
+          </div>
         </div>
       )}
 
       {step === 2 && (
         <div className="space-y-4 bg-gray-700 p-4 rounded-xl py-16">
+          <div className="flex justify-between items-center w-full">
+            <h2 className="text-xl font-bold text-center">
+              Select Number of Pieces
+            </h2>
+            <button onClick={() => setStep(1)}>
+              <FaArrowLeft />
+            </button>
+          </div>
           <div className="grid grid-cols-4 gap-3">
             {pieceOptions.map((pieces) => (
               <button

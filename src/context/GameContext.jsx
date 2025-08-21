@@ -16,8 +16,20 @@ export const GameProvider = ({ children }) => {
     stake: 50,
     requiredPieces: 2,
   });
+  const [isLoadingGameSettings, setIsLoadingGameSettings] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [currentRoomId, setCurrentRoomId] = useState(null);
+
+  // Debug: Log when gameSettings changes
+  useEffect(() => {
+    console.log("Context: gameSettings changed to:", gameSettings);
+  }, [gameSettings]);
+
+  // Debug: Log when setGameSettings is called
+  const debugSetGameSettings = (newSettings) => {
+    console.log("Context: setGameSettings called with:", newSettings);
+    setGameSettings(newSettings);
+  };
   const username = useUserStore((state) => state.username);
 
   const rollDice = (roomId, socket) => {
@@ -65,7 +77,23 @@ export const GameProvider = ({ children }) => {
       if (data.gameSettings) {
         console.log("Updating game settings:", data.gameSettings);
         setGameSettings(data.gameSettings);
+        setIsLoadingGameSettings(false);
       }
+    });
+
+    // Listen for fresh game data
+    socket.on("gameData", (data) => {
+      console.log("Fresh game data received in context:", data);
+      if (data.gameSettings) {
+        console.log("Context: Setting game settings to:", data.gameSettings);
+        setGameSettings(data.gameSettings);
+        setIsLoadingGameSettings(false);
+        console.log("Context: Game settings updated, loading set to false");
+      }
+      if (data.players) setPlayers(data.players);
+      if (data.currentTurn) setCurrentTurn(data.currentTurn);
+      if (data.gameStatus) setGameStatus(data.gameStatus);
+      if (data.lastRoll) setLastRoll(data.lastRoll);
     });
 
     socket.on("room_created", (data) => {
@@ -80,6 +108,7 @@ export const GameProvider = ({ children }) => {
 
     return () => {
       socket.off("room_update");
+      socket.off("gameData");
       socket.off("room_created");
       socket.off("player_reconnected");
     };
@@ -101,6 +130,8 @@ export const GameProvider = ({ children }) => {
     error,
     setError,
     gameSettings,
+    setGameSettings: debugSetGameSettings,
+    isLoadingGameSettings,
     isConnected,
     setIsConnected,
     rollDice,

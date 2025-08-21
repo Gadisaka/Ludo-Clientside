@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaArrowLeft,
   FaCreditCard,
@@ -6,16 +6,33 @@ import {
   FaUniversity,
   FaWallet,
   FaExclamationTriangle,
+  FaCheckCircle,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import useWalletStore from "../../store/walletStore";
 
 const Withdraw = () => {
   const navigate = useNavigate();
+  const { 
+    balance, 
+    loading, 
+    error, 
+    withdraw, 
+    getBalance, 
+    clearError 
+  } = useWalletStore();
+  
   const [selectedMethod, setSelectedMethod] = useState("");
   const [amount, setAmount] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [bankAccount, setBankAccount] = useState("");
-  const currentBalance = 2450.75;
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // Fetch balance on component mount
+  useEffect(() => {
+    getBalance();
+  }, [getBalance]);
 
   const withdrawMethods = [
     {
@@ -68,12 +85,31 @@ const Withdraw = () => {
   const totalDeduction = withdrawAmount + fee;
 
   const handleWithdraw = async () => {
-    if (!selectedMethod || !amount || totalDeduction > currentBalance) return;
-    alert(
-      `Withdrawal of ${amount} ብር via ${selectedMethod} initiated! Fee: ${fee.toFixed(
-        2
-      )} ብር`
-    );
+    if (!selectedMethod || !amount || totalDeduction > balance) return;
+    
+    try {
+      clearError();
+      const accountDetails = selectedMethod === "telebirr" || selectedMethod === "ebirr" 
+        ? phoneNumber 
+        : bankAccount;
+      
+      await withdraw(amount, selectedMethod, accountDetails);
+      
+      setSuccessMessage(`Successfully withdrew ${amount} ብር via ${selectedMethod}! Fee: ${fee.toFixed(2)} ብር`);
+      setShowSuccess(true);
+      
+      // Reset form
+      setAmount("");
+      setSelectedMethod("");
+      setPhoneNumber("");
+      setBankAccount("");
+      
+      // Hide success message after 5 seconds
+      setTimeout(() => setShowSuccess(false), 5000);
+      
+    } catch (error) {
+      console.error("Withdrawal failed:", error);
+    }
   };
 
   return (
@@ -95,10 +131,30 @@ const Withdraw = () => {
           <div className="text-center">
             <p className="text-gray-400 text-sm">Available Balance</p>
             <p className="text-3xl font-bold text-white">
-              {currentBalance.toFixed(2)} ብር
+              {loading ? "Loading..." : `${balance.toFixed(2)} ብር`}
             </p>
           </div>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-900/20 border border-red-700 rounded-xl p-4 mb-4">
+            <div className="flex items-center space-x-3 text-red-400">
+              <FaExclamationTriangle className="w-5 h-5" />
+              <p className="text-sm">{error}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Success Message */}
+        {showSuccess && (
+          <div className="bg-green-900/20 border border-green-700 rounded-xl p-4 mb-4">
+            <div className="flex items-center space-x-3 text-green-400">
+              <FaCheckCircle className="w-5 h-5" />
+              <p className="text-sm">{successMessage}</p>
+            </div>
+          </div>
+        )}
         {/* Amount Input */}
         <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 mb-4">
           <label htmlFor="amount" className="block text-gray-300 mb-2">
@@ -111,10 +167,10 @@ const Withdraw = () => {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             className="w-full bg-gray-800 border border-gray-600 text-white placeholder-gray-400 text-2xl h-14 rounded-md px-4 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            max={currentBalance}
+            max={balance}
           />
           <div className="flex space-x-2 mt-2">
-            {[100, 500, 1000, currentBalance].map((preset, index) => (
+            {[100, 500, 1000, balance].map((preset, index) => (
               <button
                 key={preset}
                 type="button"
@@ -221,7 +277,7 @@ const Withdraw = () => {
           </div>
         )}
         {/* Warning for insufficient funds */}
-        {totalDeduction > currentBalance && (
+        {totalDeduction > balance && (
           <div className="bg-red-900/20 border border-red-700 rounded-xl p-6 mb-4">
             <div className="flex items-center space-x-3 text-red-400">
               <FaExclamationTriangle className="w-5 h-5" />
@@ -235,11 +291,18 @@ const Withdraw = () => {
         <button
           onClick={handleWithdraw}
           disabled={
-            !selectedMethod || !amount || totalDeduction > currentBalance
+            !selectedMethod || !amount || totalDeduction > balance || loading
           }
-          className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-4 text-lg rounded-xl disabled:bg-gray-600"
+          className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-4 text-lg rounded-xl disabled:bg-gray-600 flex items-center justify-center"
         >
-          Withdraw {amount ? `${amount} ብር` : "Funds"}
+          {loading ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+              Processing...
+            </>
+          ) : (
+            `Withdraw ${amount ? `${amount} ብር` : "Funds"}`
+          )}
         </button>
         {/* Processing Time Notice */}
         <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 mt-4">
