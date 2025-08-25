@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   FaTrophy,
   FaClock,
@@ -10,99 +10,50 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
+import useGameHistoryStore from "../store/gameHistoryStore";
 
 const GameHistory = () => {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
-  const [gameHistory, setGameHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { user, token } = useAuthStore();
+  const { gameHistory, loading, error, fetchGameHistory } =
+    useGameHistoryStore();
+
+  console.log("GameHistory component render - Store state:", {
+    gameHistory: gameHistory.length,
+    loading,
+    error,
+    fetchGameHistory: typeof fetchGameHistory,
+  });
+
+  console.log("User object details:", {
+    user: user,
+    userId: user?.id || user?._id,
+    userType: typeof user,
+    hasUser: !!user,
+    hasUserId: !!(user?.id || user?._id),
+  });
 
   // Fetch game history on component mount
   useEffect(() => {
-    fetchGameHistory();
-  }, []);
+    console.log("History component useEffect triggered");
+    console.log("User object:", user);
+    console.log("User ID:", user?.id);
+    console.log("Token:", token ? "Present" : "Missing");
+    console.log("fetchGameHistory function:", fetchGameHistory);
 
-  const fetchGameHistory = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Fetch game history from the backend
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_API_URL || "http://localhost:5000"
-        }/games/history`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch game history");
-      }
-
-      const data = await response.json();
-
-      // Transform the data to match our component's expected format
-      const transformedHistory = data.games.map((game) => {
-        const isWinner = game.winnerId === user?.id;
-        const hasBots = game.players && game.players.some((p) => p.isBot);
-        const cutPercentage = import.meta.env.VITE_GAME_CUT_PERCENTAGE || 10; // Default to 10%
-
-        return {
-          id: game._id,
-          gameType: hasBots
-            ? "Bot Match"
-            : game.players && game.players.length === 2
-            ? "2-Player Match"
-            : "Multi-Player Match",
-          result: isWinner ? "won" : "lost",
-          amount: isWinner
-            ? 2 * game.stake - (2 * game.stake * cutPercentage) / 100 // Use dynamic cut percentage
-            : -game.stake, // Lost stake
-          playerCount: game.players ? game.players.length : 2, // Default to 2 if not available
-          date: new Date(game.createdAt).toISOString().split("T")[0],
-          time: new Date(game.createdAt).toLocaleTimeString("en-US", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-          duration: calculateGameDuration(game.createdAt, game.updatedAt),
-          stake: game.stake,
-          roomId: game.roomId,
-          players: game.players || [],
-          hasBots: hasBots || false,
-        };
-      });
-
-      setGameHistory(transformedHistory);
-    } catch (err) {
-      console.error("Error fetching game history:", err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    const userId = user?.id || user?._id;
+    if (userId && token) {
+      console.log("Calling fetchGameHistory with user ID:", userId);
+      fetchGameHistory(userId, token);
+    } else {
+      console.log("No user ID or token available, cannot fetch game history");
     }
-  };
+  }, [user?.id, token, fetchGameHistory]);
 
-  const calculateGameDuration = (startTime, endTime) => {
-    if (!startTime || !endTime) return "Unknown";
-
-    const start = new Date(startTime);
-    const end = new Date(endTime);
-    const durationMs = end - start;
-
-    const minutes = Math.floor(durationMs / (1000 * 60));
-    const seconds = Math.floor((durationMs % (1000 * 60)) / 1000);
-
-    if (minutes > 0) {
-      return `${minutes}m ${seconds}s`;
-    }
-    return `${seconds}s`;
-  };
+  // Debug useEffect - runs on every render to track user changes
+  useEffect(() => {
+    console.log("Debug useEffect - User changed:", user);
+  });
 
   const getResultIcon = (result) => {
     if (result === "won") {
@@ -141,9 +92,13 @@ const GameHistory = () => {
               </div>
             </div>
             <button
-              onClick={fetchGameHistory}
+              onClick={() =>
+                (user?.id || user?._id) &&
+                token &&
+                fetchGameHistory(user?.id || user?._id, token)
+              }
               disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center space-x-2"
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center space-x-2"
             >
               <FaClock className="w-4 h-4" />
               <span>Refresh</span>
@@ -176,7 +131,11 @@ const GameHistory = () => {
               </h3>
               <p className="text-gray-400 text-lg mb-6">{error}</p>
               <button
-                onClick={fetchGameHistory}
+                onClick={() =>
+                  (user?.id || user?._id) &&
+                  token &&
+                  fetchGameHistory(user?.id || user?._id, token)
+                }
                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl"
               >
                 Try Again
@@ -206,30 +165,6 @@ const GameHistory = () => {
           </div>
         ) : (
           <>
-            {/* Stats Summary */}
-            {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 text-center">
-                <FaTrophy className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-white">
-                  {gameHistory.filter((game) => game.result === "won").length}
-                </p>
-                <p className="text-gray-400">Games Won</p>
-              </div>
-              <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 text-center">
-                <FaBullseye className="w-8 h-8 text-red-400 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-white">
-                  {gameHistory.filter((game) => game.result === "lost").length}
-                </p>
-                <p className="text-gray-400">Games Lost</p>
-              </div>
-              <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 text-center">
-                <FaClock className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-                <p className="text-2xl font-bold text-white">
-                  {gameHistory.length}
-                </p>
-                <p className="text-gray-400">Total Games</p>
-              </div>
-            </div> */}
             {/* Game History List */}
             <div className="bg-gray-900 border border-gray-700 shadow-2xl rounded-xl">
               <div className="p-0">
@@ -246,7 +181,7 @@ const GameHistory = () => {
                         <div>
                           <div className="flex items-center space-x-2 mb-1">
                             <p className="text-white font-semibold text-lg">
-                              {game.gameType}
+                              {/* {game.gameType} */}Quick Match
                             </p>
                             <span
                               className={`text-sm font-medium px-2 py-1 rounded-full ${
@@ -269,10 +204,7 @@ const GameHistory = () => {
                               <FaUsers className="w-4 h-4" />
                               <span>{game.playerCount} players</span>
                             </span>
-                            <span className="flex items-center space-x-1">
-                              <FaClock className="w-4 h-4" />
-                              <span>{game.duration}</span>
-                            </span>
+
                             <span className="flex items-center space-x-1">
                               <span className="text-yellow-400 font-medium">
                                 Stake: {game.stake} ብር

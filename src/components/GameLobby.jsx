@@ -5,93 +5,35 @@ import useWalletStore from "../store/walletStore";
 import GameDetails from "./GameDetails";
 import { useNavigate } from "react-router-dom";
 
-// Dice rolling animation component
+// Dice rolling animation component using GIF
 const DiceRollingAnimation = ({ isVisible, onComplete }) => {
-  const [diceValue, setDiceValue] = useState(1);
-  const [isRolling, setIsRolling] = useState(false);
-  const [particles, setParticles] = useState([]);
-
   useEffect(() => {
-    if (isVisible && !isRolling) {
-      setIsRolling(true);
+    if (isVisible) {
+      // Show animation for 2.5 seconds then hide
+      const timer = setTimeout(() => {
+        onComplete();
+      }, 2500);
 
-      // Create particle effects
-      const newParticles = Array.from({ length: 20 }, (_, i) => ({
-        id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: Math.random() * 4 + 2,
-        color: ["#FFD700", "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4"][
-          Math.floor(Math.random() * 5)
-        ],
-      }));
-      setParticles(newParticles);
-
-      const rollInterval = setInterval(() => {
-        setDiceValue(Math.floor(Math.random() * 6) + 1);
-      }, 100);
-
-      // Stop rolling after 2 seconds
-      setTimeout(() => {
-        clearInterval(rollInterval);
-        setIsRolling(false);
-        setTimeout(onComplete, 500); // Wait a bit before hiding
-      }, 2000);
+      return () => clearTimeout(timer);
     }
-  }, [isVisible, isRolling, onComplete]);
+  }, [isVisible, onComplete]);
 
   if (!isVisible) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      {/* Particle effects */}
-      {particles.map((particle) => (
-        <div
-          key={particle.id}
-          className="absolute animate-ping"
-          style={{
-            left: `${particle.x}%`,
-            top: `${particle.y}%`,
-            width: `${particle.size}px`,
-            height: `${particle.size}px`,
-            backgroundColor: particle.color,
-            borderRadius: "50%",
-            opacity: isRolling ? 0.8 : 0.3,
-            animationDelay: `${particle.id * 0.1}s`,
-          }}
-        />
-      ))}
-
       <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-6">
-            Rolling the Dice...
-          </h2>
-          <div className="relative">
-            {/* Dice with rolling animation */}
-            <div
-              className={`w-24 h-24 bg-white rounded-xl shadow-lg flex items-center justify-center text-4xl font-bold text-gray-800 transform transition-all duration-200 ${
-                isRolling ? "animate-bounce rotate-12 scale-110" : "scale-100"
-              }`}
-            >
-              {diceValue}
-            </div>
-
-            {/* Glowing effect */}
-            <div
-              className={`absolute inset-0 w-24 h-24 rounded-xl ${
-                isRolling
-                  ? "animate-pulse bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 opacity-30"
-                  : "bg-gradient-to-r from-green-400 to-blue-500 opacity-20"
-              } blur-xl -z-10`}
-            ></div>
+        <div className="relative ">
+          {/* Dice GIF */}
+          <div className="w-32 h-32 flex items-center justify-center">
+            <img
+              src="/src/assets/Dice.gif"
+              alt="Dice Rolling Animation"
+              className="w-full h-full object-contain"
+            />
           </div>
-
-          {/* Rolling text */}
-          <p className="text-white/80 mt-4 text-lg">
-            {isRolling ? "🎲 Rolling..." : `🎯 You got ${diceValue}!`}
-          </p>
         </div>
+        {/* Rolling text */}
       </div>
     </div>
   );
@@ -104,7 +46,7 @@ const GameLobby = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(true);
   const [showDiceAnimation, setShowDiceAnimation] = useState(true);
-  const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
+  // const [showWelcomeMessage, setShowWelcomeMessage] = useState(false);
   const username = useUserStore((state) => state.username);
   const { balance, getBalance } = useWalletStore();
   const [showGameDetails, setShowGameDetails] = useState(false);
@@ -222,13 +164,15 @@ const GameLobby = () => {
 
   const handleDiceAnimationComplete = () => {
     setShowDiceAnimation(false);
-    setShowWelcomeMessage(true);
+    // setShowWelcomeMessage(true);
 
     // Hide welcome message after 3 seconds
     setTimeout(() => {
-      setShowWelcomeMessage(false);
+      // setShowWelcomeMessage(false);
     }, 3000);
   };
+
+  // welcome
 
   return (
     <>
@@ -237,17 +181,6 @@ const GameLobby = () => {
         isVisible={showDiceAnimation}
         onComplete={handleDiceAnimationComplete}
       />
-
-      {/* Welcome Message */}
-      {showWelcomeMessage && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-40">
-          <div className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-6 py-3 rounded-full shadow-lg animate-bounce">
-            <h3 className="text-lg font-bold">
-              🎮 Welcome to the Game Lobby! 🎮
-            </h3>
-          </div>
-        </div>
-      )}
 
       {/* Main GameLobby Content */}
       <div className="flex  flex-col items-center gap-6 p-8 bg-gray-800 rounded-lg shadow-xl max-w-2xl mx-auto">
@@ -290,7 +223,7 @@ const GameLobby = () => {
                 !isConnected ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
-              {/* Reload Icon */}
+              {/* Dice Icon */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width={20}
@@ -304,7 +237,31 @@ const GameLobby = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M4 4v5h.582M20 20v-5h-.581M19.418 9A7.978 7.978 0 0012 4c-3.042 0-5.824 1.721-7.418 4M4.582 15A7.978 7.978 0 0012 20c3.042 0 5.824-1.721 7.418-4"
+                  d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8.5 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15.5 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8.5 17a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15.5 17a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"
                 />
               </svg>
             </button>
