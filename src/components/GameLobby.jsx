@@ -223,53 +223,38 @@ const GameLobby = () => {
                 !isConnected ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
-              {/* Dice Icon */}
+              {/* reload icon svg */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width={20}
                 height={20}
-                fill="none"
                 viewBox="0 0 24 24"
+                fill="none"
                 stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 className="text-white"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8.5 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15.5 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8.5 17a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15.5 17a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"
-                />
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                <path d="M21 3v5h-5" />
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                <path d="M3 21v-5h5" />
               </svg>
             </button>
           </div>
         </div>
 
         {isConnecting && (
-          <div className="text-yellow-500 mb-4">Connecting to server...</div>
+          <div className="text-yellow-500 mb-4">
+            Connecting to server...{" "}
+            <button
+              onClick={() => window.location.reload()}
+              className="text-white ml-2 bg-[#CD3760] rounded-md px-2 py-1 "
+            >
+              Refresh
+            </button>
+          </div>
         )}
 
         <div className="w-full max-w-md">

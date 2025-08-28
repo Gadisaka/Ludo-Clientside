@@ -7,15 +7,25 @@ import useSocketEvents from "../hooks/useSocketEvents";
 import bg from "../assets/Picsart_25-06-24_16-26-17-659.jpg";
 import { crown } from "./Dies";
 import coin from "../assets/coin.png";
-import { Navigate, useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { API_URL } from "../../constants";
 // import useUserStore from "../store/zutstand";
 
 const PlayingPage = () => {
   const { gameID: roomId } = useParams();
-  const [leave, setLeave] = useState(false);
+  const navigate = useNavigate();
   // Timer state
   const [waitingTime, setWaitingTime] = useState(0);
   const timerRef = useRef(null);
+  const MAX_WAITING_TIME = 35; // Maximum waiting time in seconds (1 minute)
+
+  // Leave countdown state
+  const [showLeaveCountdown, setShowLeaveCountdown] = useState(false);
+  const [leaveCountdown, setLeaveCountdown] = useState(60);
+  const leaveTimerRef = useRef(null);
+
+  // Cut percentage state
+  const [cutPercentage, setCutPercentage] = useState(10); // Default 10%
 
   const {
     value,
@@ -23,11 +33,32 @@ const PlayingPage = () => {
     players,
     currentTurn,
     gameStatus,
-    lastRoll,
     rollDice,
     gameSettings,
     isLoadingGameSettings,
   } = useGame();
+
+  // Calculate winnings (2 * stake - cut percentage)
+  const calculateWinnings = (stake, cutPercentage = 10) => {
+    if (!stake) return 0;
+    return 2 * stake - (2 * stake * cutPercentage) / 100;
+  };
+
+  // Fetch cut percentage from backend
+  const fetchCutPercentage = async () => {
+    try {
+      const response = await fetch(
+        `${API_URL}/admin/settings/GAME_CUT_PERCENTAGE`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setCutPercentage(data.data.settingValue);
+      }
+    } catch (error) {
+      console.error("Error fetching cut percentage:", error);
+      // Keep default value of 10%
+    }
+  };
 
   // Debug: Log current game settings
   useEffect(() => {
@@ -37,6 +68,13 @@ const PlayingPage = () => {
     );
     console.log("PlayingPage - isLoadingGameSettings:", isLoadingGameSettings);
   }, [gameSettings, isLoadingGameSettings]);
+
+  // Debug: Log gameStatus changes
+  useEffect(() => {
+    console.log("🎮 PlayingPage - gameStatus changed:", gameStatus);
+    console.log("🎮 PlayingPage - players:", players);
+    console.log("🎮 PlayingPage - currentTurn:", currentTurn);
+  }, [gameStatus, players, currentTurn]);
 
   // Simple hook for socket events
   useSocketEvents(roomId);
@@ -50,6 +88,8 @@ const PlayingPage = () => {
       socket.emit("getGameData", { gameId: roomId });
       console.log("Requesting fresh game data for room:", roomId);
     }
+    // Fetch cut percentage
+    fetchCutPercentage();
   }, [roomId]);
 
   // Timer effect: start when waiting, stop/reset otherwise
@@ -57,7 +97,15 @@ const PlayingPage = () => {
     if (gameStatus === "waiting" && players.length === 1) {
       if (!timerRef.current) {
         timerRef.current = setInterval(() => {
-          setWaitingTime((prev) => prev + 1);
+          setWaitingTime((prev) => {
+            if (prev >= MAX_WAITING_TIME) {
+              // Stop timer when max waiting time is reached
+              clearInterval(timerRef.current);
+              timerRef.current = null;
+              return MAX_WAITING_TIME;
+            }
+            return prev + 1;
+          });
         }, 1000);
       }
     } else {
@@ -73,7 +121,7 @@ const PlayingPage = () => {
         timerRef.current = null;
       }
     };
-  }, [gameStatus, players.length]);
+  }, [gameStatus, players.length, MAX_WAITING_TIME]);
 
   function formatTime(seconds) {
     const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
@@ -82,12 +130,96 @@ const PlayingPage = () => {
   }
 
   function onLeaveGame() {
-    setLeave(true);
+    // Debug logging to understand the issue
+    console.log("🔍 onLeaveGame called:");
+    console.log("   gameStatus:", gameStatus);
+    console.log("   players:", players);
+    console.log("   players.length:", players.length);
+    console.log("   gameStatus === 'playing':", gameStatus === "playing");
+    console.log("   players.length >= 2:", players.length >= 2);
+    console.log(
+      "   Should show countdown:",
+      gameStatus === "playing" || players.length >= 2
+    );
+
+    // Only show countdown if game is actively playing (or has 2 players)
+    if (gameStatus === "playing" || players.length >= 2) {
+      console.log("✅ Starting leave countdown timer");
+      setShowLeaveCountdown(true);
+      setLeaveCountdown(60);
+
+      // Start countdown timer
+      leaveTimerRef.current = setInterval(() => {
+        setLeaveCountdown((prev) => {
+          if (prev <= 1) {
+            // Timer finished - leave the game
+            clearInterval(leaveTimerRef.current);
+            setShowLeaveCountdown(false);
+            handleLeaveRoom();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      console.log("❌ Game not playing, leaving immediately");
+      console.log("   Current gameStatus:", gameStatus);
+      // If game is waiting or not started, leave immediately
+      handleLeaveRoom();
+    }
   }
 
-  if (leave) {
-    return <Navigate to="/game" />;
+  function handleLeaveRoom() {
+    console.log(`Leaving room ${roomId}`);
+    socket.emit("leave_room", { roomId });
   }
+
+  function cancelLeaveGame() {
+    setShowLeaveCountdown(false);
+    setLeaveCountdown(60);
+    if (leaveTimerRef.current) {
+      clearInterval(leaveTimerRef.current);
+    }
+  }
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (leaveTimerRef.current) {
+        clearInterval(leaveTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Socket event listeners for leave room responses
+  useEffect(() => {
+    const handleRoomDeleted = (data) => {
+      console.log("Room deleted:", data);
+      navigate("/game");
+    };
+
+    const handleLeftRoom = (data) => {
+      console.log("Left room:", data);
+      navigate("/game");
+    };
+
+    const handlePlayerLeft = (data) => {
+      console.log("Player left room:", data);
+      // Handle other player leaving (not applicable for current user)
+    };
+
+    // Add event listeners
+    socket.on("room_deleted", handleRoomDeleted);
+    socket.on("left_room", handleLeftRoom);
+    socket.on("player_left", handlePlayerLeft);
+
+    // Cleanup event listeners
+    return () => {
+      socket.off("room_deleted", handleRoomDeleted);
+      socket.off("left_room", handleLeftRoom);
+      socket.off("player_left", handlePlayerLeft);
+    };
+  }, [navigate]);
 
   // const [displayName, setDisplayName] = useState("");
   // {error && <p className="text-red-500 text-center">{error}</p>}
@@ -101,16 +233,18 @@ const PlayingPage = () => {
       />
       <div className="w-full  flex flex-col items-center px-4 space-y-2 z-100 ">
         {/* Show waiting message if game is waiting and only one player */}
-        {gameStatus === "waiting" && players.length === 1 && (
-          <div className="w-full absolute top-1/3 flex flex-col justify-center items-center py-4 z-100">
-            <span className="text-yellow-400 text-lg font-semibold bg-gray-900/80 px-6 py-2 rounded-lg shadow-lg border border-yellow-500/30 flex flex-col items-center">
-              waiting for opponent to join...
-              <span className="text-xs text-gray-300 mt-1">
-                Waiting time: {formatTime(waitingTime)}
+        {gameStatus === "waiting" &&
+          players.length === 1 &&
+          waitingTime < MAX_WAITING_TIME && (
+            <div className="w-full absolute top-1/3 flex flex-col justify-center items-center py-4 z-100">
+              <span className="text-yellow-400 text-lg font-semibold bg-gray-900/80 px-6 py-2 rounded-lg shadow-lg border border-yellow-500/30 flex flex-col items-center">
+                waiting for opponent to join...
+                <span className="text-xs text-gray-300 mt-1">
+                  Waiting time: {formatTime(waitingTime)}
+                </span>
               </span>
-            </span>
-          </div>
-        )}
+            </div>
+          )}
         {/* <div className="w-full flex justify-between items-center">
           <button
             onClick={onLeaveGame}
@@ -179,9 +313,13 @@ const PlayingPage = () => {
 
           <div className="flex justify-between items-center px-5 text-xl font-bold text-gray-300 z-100 w-[80%] h-[50px] bg-gray-800/30 border rounded-lg border-white/20  backdrop-blur-md  ">
             <p className="flex gap-2 justify-center items-center">
-              Stake:{" "}
+              Prize:{" "}
               <b>
-                {isLoadingGameSettings ? "..." : gameSettings?.stake || "..."}
+                {isLoadingGameSettings
+                  ? "..."
+                  : Math.round(
+                      calculateWinnings(gameSettings?.stake, cutPercentage)
+                    ) || "..."}
               </b>{" "}
               <img src={coin} alt="coin" className="w-6 h-6" />
             </p>
@@ -191,31 +329,13 @@ const PlayingPage = () => {
                   ? "..."
                   : gameSettings?.requiredPieces || "..."}
               </b>{" "}
-              King
-              {isLoadingGameSettings
-                ? ""
-                : gameSettings?.requiredPieces > 1
-                ? "s"
-                : ""}{" "}
-              {crown}
+              ባነገሰ {crown}
             </p>
           </div>
         </div>
         <div className="w-[90%] h-[50px] bg-white text-black z-100 flex justify-center items-center">
           {" "}
           ad will be displayed here
-        </div>
-        <div className="w-full max-w-xl rounded-lg z-100">
-          {lastRoll && (
-            <div className="text-center">
-              <p>
-                @
-                {players.find((p) => p.id === lastRoll.roller)?.name ||
-                  "Unknown"}{" "}
-                rolled a {lastRoll.value}
-              </p>
-            </div>
-          )}
         </div>
       </div>
       <LudoBoard roomId={roomId} />
@@ -274,6 +394,40 @@ const PlayingPage = () => {
           </div>
         )}
       </div>
+
+      {/* Leave Countdown Overlay */}
+      {showLeaveCountdown && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-999">
+          <div className="bg-gray-800/20 border border-gray-600 rounded-2xl p-8 text-center shadow-2xl backdrop-blur-md max-w-md mx-4">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Leaving Game
+              </h2>
+              <p className="text-gray-300">You will leave the game in:</p>
+            </div>
+
+            <div className="mb-6">
+              <div className="text-6xl font-bold text-red-400 mb-2">
+                {Math.floor(leaveCountdown / 60)}:
+                {String(leaveCountdown % 60).padStart(2, "0")}
+              </div>
+              <div className="w-full bg-gray-700 rounded-full h-2">
+                <div
+                  className="bg-red-500 h-2 rounded-full transition-all duration-1000 ease-linear"
+                  style={{ width: `${((60 - leaveCountdown) / 60) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+
+            <button
+              onClick={cancelLeaveGame}
+              className="flex items-center justify-center gap-2 bg-gray-600 hover:bg-gray-500 text-white px-6 py-3 rounded-lg transition-colors duration-200 font-semibold"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

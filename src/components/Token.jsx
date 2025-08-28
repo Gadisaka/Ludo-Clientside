@@ -40,37 +40,10 @@ function Token({
     // If the light is already at the token, don't animate
     if (lightPosition === position) return;
 
-    // For backwards movement, light should appear behind the token
+    // For backwards movement, disable the light trail
     if (isBackwardsAnimating) {
-      // Start the light at the next position (ahead of current position)
-      let startIdx = tokenIdx + 1;
-      if (startIdx >= pathArr.length) {
-        setLightPosition(null);
-        return;
-      }
-      setLightPosition(pathArr[startIdx]);
-
-      // Animate the light backwards to follow the token
-      function animateLightBackwards(idx) {
-        if (idx < tokenIdx) return;
-        setLightPosition(pathArr[idx]);
-        if (idx > tokenIdx) {
-          lightTimeoutRef.current = setTimeout(
-            () => animateLightBackwards(idx - 1),
-            80
-          );
-        } else {
-          // Remove the light after a short time at the final position
-          lightTimeoutRef.current = setTimeout(
-            () => setLightPosition(null),
-            200
-          );
-        }
-      }
-      lightTimeoutRef.current = setTimeout(
-        () => animateLightBackwards(startIdx - 1),
-        80
-      );
+      setLightPosition(null);
+      return;
     } else {
       // Normal forward movement - light appears behind the token
       let startIdx = tokenIdx - 1;

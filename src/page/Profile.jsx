@@ -19,6 +19,9 @@ const Profile = () => {
   const [recentTransactions, setRecentTransactions] = useState([]);
 
   const logout = useAuthStore((state) => state.logout);
+  const user = useAuthStore((state) => state.user);
+  console.log(user);
+
   const navigate = useNavigate();
 
   // Fetch balance and transactions on component mount
@@ -98,7 +101,7 @@ const Profile = () => {
             {/* Username */}
             <div className="text-center">
               <h1 className="text-3xl font-bold text-white mb-2">
-                GameMaster_007
+                @{user.username}
               </h1>
             </div>
             {/* Balance */}

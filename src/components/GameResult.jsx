@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { API_URL } from "../../constants";
 
 // Confetti component
 const Confetti = () => {
@@ -76,7 +77,72 @@ const Confetti = () => {
 const GameResult = ({ result, onTryAgain }) => {
   const isWinner = result.isWinner;
   const playerData = isWinner ? result.winner : result.loser;
+
+  // Cut percentage state
+  const [cutPercentage, setCutPercentage] = useState(10); // Default 10%
+
+  // Calculate winnings (2 * stake - cut percentage)
+  const calculateWinnings = (stake, cutPercentage = 10) => {
+    if (!stake) return 0;
+    return 2 * stake - (2 * stake * cutPercentage) / 100;
+  };
+
+  // Fetch cut percentage from backend
+  const fetchCutPercentage = async () => {
+    try {
+      const response = await fetch(
+        `${API_URL}/admin/settings/GAME_CUT_PERCENTAGE`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setCutPercentage(data.data.settingValue);
+      }
+    } catch (error) {
+      console.error("Error fetching cut percentage:", error);
+      // Keep default value of 10%
+    }
+  };
+
+  // Fetch cut percentage when component mounts
+  useEffect(() => {
+    fetchCutPercentage();
+  }, []);
   const gameDuration = Math.floor(result.gameDuration / 1000);
+
+  // Determine win/loss reason and messaging
+  const getResultMessage = () => {
+    if (result.reason === "auto_move_win") {
+      return isWinner
+        ? "Won with auto-moves after disconnect!"
+        : "Lost to disconnected player's auto-moves";
+    } else if (result.reason === "auto_move_limit_reached") {
+      return isWinner
+        ? "Won! Opponent exceeded auto-move limit"
+        : "Lost due to auto-move limit exceeded";
+    } else if (result.reason === "opponent_left") {
+      return isWinner
+        ? "Won! Opponent left the game"
+        : "Lost - You left the game";
+    } else if (result.reason === "both_disconnected") {
+      return "Game ended - All players disconnected";
+    } else {
+      return isWinner ? "እንኳን ደስ አሎት!" : "እንደገና ይሞክሩ";
+    }
+  };
+
+  const getResultIcon = () => {
+    if (result.reason === "auto_move_win") {
+      return isWinner ? "🎯 አሸናፊ!" : "🔌 Game Over!";
+    } else if (result.reason === "auto_move_limit_reached") {
+      return isWinner ? "⏰ አሸናፊ!" : "⏰ Game Over!";
+    } else if (result.reason === "opponent_left") {
+      return isWinner ? "🚪 አሸናፊ!" : "🚪 Game Over!";
+    } else if (result.reason === "both_disconnected") {
+      return "🔌 Game Ended";
+    } else {
+      return isWinner ? "🏆 አሸናፊ!" : "Game Over!";
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[2000]">
@@ -90,22 +156,35 @@ const GameResult = ({ result, onTryAgain }) => {
               isWinner ? "text-yellow-400" : "text-red-400"
             }`}
           >
-            <h1 className="font-bold">
-              {isWinner ? "🏆 አሸናፊ!" : "Game Over!"}
-            </h1>
+            <h1 className="font-bold">{getResultIcon()}</h1>
           </div>
 
           <div className="space-y-2">
             <p className="text-xl font-semibold text-white">
               @{playerData.name}
             </p>
-            <p className="text-gray-300">
-              {isWinner ? "እንኳን ደስ አሎት!" : "እንደገና ይሞክሩ"}
-            </p>
+            <p className="text-gray-300">{getResultMessage()}</p>
+
+            {/* Special message for disconnect-related games */}
+            {(result.reason === "auto_move_win" ||
+              result.reason === "auto_move_limit_reached" ||
+              result.reason === "opponent_left") && (
+              <div className="bg-orange-900/30 border border-orange-700/50 rounded-lg p-3 mt-3">
+                <p className="text-orange-200 text-sm">
+                  {result.reason === "auto_move_win"
+                    ? "🤖 Disconnected player completed the game automatically"
+                    : result.reason === "auto_move_limit_reached"
+                    ? "🚫 Disconnected player exceeded 5 auto-move limit"
+                    : "🚪 Player left the active game"}
+                </p>
+              </div>
+            )}
             <div className="bg-gray-700/50 p-4 rounded-lg space-y-2">
               <p className="text-gray-300">
                 Prize:{" "}
-                <span className="text-white font-semibold">{result.stake}</span>
+                <span className="text-white font-semibold">
+                  {Math.round(calculateWinnings(result.stake, cutPercentage))}
+                </span>
               </p>
               <p className="text-gray-300">
                 Game duration:{" "}
@@ -114,10 +193,11 @@ const GameResult = ({ result, onTryAgain }) => {
                 </span>
               </p>
               <p className="text-gray-300">
-                Required pieces:{" "}
                 <span className="text-white font-semibold">
                   {result.requiredPieces}
+                  {""}
                 </span>
+                ባነገሰ
               </p>
             </div>
           </div>

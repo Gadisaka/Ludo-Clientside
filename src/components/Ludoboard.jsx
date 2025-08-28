@@ -29,7 +29,7 @@ const LudoBoard = ({ roomId }) => {
       // yellow: ["yh1", "yh2", "yh3", "yh4"],
     },
   });
-  const [error, setError] = useState(null);
+  const [, setError] = useState(null);
   const [newPath, setNewPath] = useState(null);
   const [step, setStep] = useState(null);
   const [lastValidPosition, setLastValidPosition] = useState(null);
@@ -38,6 +38,11 @@ const LudoBoard = ({ roomId }) => {
 
   // New state for backwards animation
   const [backwardsAnimation, setBackwardsAnimation] = useState(null);
+
+  // Disconnect and auto-move tracking states
+  const [disconnectedPlayers, setDisconnectedPlayers] = useState({});
+  const [autoMoveProgress, setAutoMoveProgress] = useState({});
+  const [countdownTimers, setCountdownTimers] = useState({});
 
   // Get current player's color
   const playerColor = players.find((p) => p.id === socket.id)?.color;
@@ -59,7 +64,7 @@ const LudoBoard = ({ roomId }) => {
       "isMyTurn:",
       isMyTurn
     );
-  }, [socket.id, currentTurn, isMyTurn]);
+  }, [currentTurn, isMyTurn]);
 
   // Helper function to generate step-by-step path for bot movement
   const generateBotMovementPath = useCallback(
@@ -162,7 +167,7 @@ const LudoBoard = ({ roomId }) => {
           currentStep++;
 
           // Continue to next step after a delay
-          setTimeout(animateStep, 150); // 150ms delay between steps for smooth animation
+          setTimeout(animateStep, 300); // 300ms delay between steps for smoother animation
         } else {
           // Animation complete, set final position
           console.log(
@@ -183,7 +188,7 @@ const LudoBoard = ({ roomId }) => {
   // Handle socket errors
   const handleError = useCallback((message) => {
     setError(message);
-    console.log(error);
+    console.log(message);
 
     setTimeout(() => setError(null), 3000); // Clear error after 3 seconds
   }, []);
@@ -305,6 +310,36 @@ const LudoBoard = ({ roomId }) => {
     }
   }, [matchResults, gameResult]);
 
+  // Countdown timer effect for disconnected players
+  useEffect(() => {
+    const timers = {};
+
+    Object.entries(disconnectedPlayers).forEach(([playerId, data]) => {
+      if (data.timeout > 0) {
+        timers[playerId] = setInterval(() => {
+          setCountdownTimers((prev) => {
+            const currentTime = prev[playerId] || data.timeout;
+            const newTime = currentTime - 1;
+
+            if (newTime <= 0) {
+              clearInterval(timers[playerId]);
+              return { ...prev, [playerId]: 0 };
+            }
+
+            return { ...prev, [playerId]: newTime };
+          });
+        }, 1000);
+
+        // Initialize countdown
+        setCountdownTimers((prev) => ({ ...prev, [playerId]: data.timeout }));
+      }
+    });
+
+    return () => {
+      Object.values(timers).forEach((timer) => clearInterval(timer));
+    };
+  }, [disconnectedPlayers]);
+
   // Listen for game events
   useEffect(() => {
     socket.on("error_message", handleError);
@@ -340,7 +375,7 @@ const LudoBoard = ({ roomId }) => {
           console.log("[PIECE_MOVED] Updating game state after bot animation");
           setGameState(pieces);
           setNewPath(pieces.path);
-        }, 1000); // Wait for animation to complete
+        }, 2000); // Wait for animation to complete (increased for slower animation)
       } else {
         console.log("[PIECE_MOVED] Human move detected, updating immediately");
         // Human player move - update immediately
@@ -370,11 +405,90 @@ const LudoBoard = ({ roomId }) => {
       setMatchResults(results);
     });
 
+    // Handle player disconnect events
+    socket.on("player_disconnected", ({ playerId, playerName, timeout }) => {
+      console.log(
+        `[DISCONNECT] Player ${playerName} (${playerId}) disconnected`
+      );
+      setDisconnectedPlayers((prev) => ({
+        ...prev,
+        [playerId]: { playerName, timeout, isAutoMoving: false },
+      }));
+    });
+
+    // Handle player reconnect events
+    socket.on("player_reconnected", ({ playerId, playerName }) => {
+      console.log(`[RECONNECT] Player ${playerName} (${playerId}) reconnected`);
+      setDisconnectedPlayers((prev) => {
+        const updated = { ...prev };
+        delete updated[playerId];
+        return updated;
+      });
+      setCountdownTimers((prev) => {
+        const updated = { ...prev };
+        delete updated[playerId];
+        return updated;
+      });
+      setAutoMoveProgress((prev) => {
+        const updated = { ...prev };
+        delete updated[playerId];
+        return updated;
+      });
+    });
+
+    // Handle auto-move start events
+    socket.on("auto_move_started", ({ playerId, playerName }) => {
+      console.log(
+        `[AUTO_MOVE] Auto-move started for ${playerName} (${playerId})`
+      );
+      setDisconnectedPlayers((prev) => ({
+        ...prev,
+        [playerId]: { ...prev[playerId], isAutoMoving: true },
+      }));
+      setAutoMoveProgress((prev) => ({
+        ...prev,
+        [playerId]: { currentMove: 0, totalMoves: 5 },
+      }));
+    });
+
+    // Handle auto-move progress events
+    socket.on("auto_move_progress", ({ playerId, currentMove, totalMoves }) => {
+      console.log(
+        `[AUTO_MOVE] Progress for ${playerId}: ${currentMove}/${totalMoves}`
+      );
+      setAutoMoveProgress((prev) => ({
+        ...prev,
+        [playerId]: { currentMove, totalMoves },
+      }));
+    });
+
+    // Handle auto-move complete events
+    socket.on("auto_move_complete", ({ playerId, reason }) => {
+      console.log(`[AUTO_MOVE] Complete for ${playerId}: ${reason}`);
+      if (reason === "limit_reached" || reason === "game_won") {
+        setDisconnectedPlayers((prev) => {
+          const updated = { ...prev };
+          delete updated[playerId];
+          return updated;
+        });
+        setAutoMoveProgress((prev) => {
+          const updated = { ...prev };
+          delete updated[playerId];
+          return updated;
+        });
+      }
+    });
+
     return () => {
       socket.off("error_message");
       socket.off("piece_moved");
       socket.off("piece_killed");
       socket.off("game_over");
+      socket.off("player_disconnected");
+      socket.off("player_reconnected");
+      socket.off("auto_move_started");
+      socket.off("auto_move_progress");
+      socket.off("auto_move_complete");
     };
   }, [
     setGameStatus,
@@ -395,23 +509,26 @@ const LudoBoard = ({ roomId }) => {
     navigate("/");
   };
 
-  function movePieceByColor(color, index) {
-    if (socket.id !== currentTurn) {
-      console.log("Not your turn!");
-      return;
-    }
+  const movePieceByColor = useCallback(
+    (color, index) => {
+      if (socket.id !== currentTurn) {
+        console.log("Not your turn!");
+        return;
+      }
 
-    if (color !== playerColor) {
-      console.log("You can only move your own pieces!");
-      return;
-    }
+      if (color !== playerColor) {
+        console.log("You can only move your own pieces!");
+        return;
+      }
 
-    socket.emit("move_piece", {
-      roomId,
-      color,
-      pieceIndex: index,
-    });
-  }
+      socket.emit("move_piece", {
+        roomId,
+        color,
+        pieceIndex: index,
+      });
+    },
+    [currentTurn, playerColor, roomId]
+  );
 
   let positions = [];
   function isInSamePosition(pos) {
@@ -424,36 +541,39 @@ const LudoBoard = ({ roomId }) => {
       return false;
     }
   }
-  function getMovableTokens(color) {
-    const tokens = gameState.pieces[color] || [];
-    const path = color && paths[color];
-    if (!path) return [];
-    let movable = [];
-    tokens.forEach((pos, idx) => {
-      // Skip if position is null or undefined
-      if (!pos) return;
+  const getMovableTokens = useCallback(
+    (color) => {
+      const tokens = gameState.pieces[color] || [];
+      const path = color && paths[color];
+      if (!path) return [];
+      let movable = [];
+      tokens.forEach((pos, idx) => {
+        // Skip if position is null or undefined
+        if (!pos) return;
 
-      const isHome =
-        pos.endsWith("h1") ||
-        pos.endsWith("h2") ||
-        pos.endsWith("h3") ||
-        pos.endsWith("h4");
-      if (isHome) {
-        if (diceValue === 6) movable.push(idx);
-        return;
-      }
-      // If in win zone, skip
-      if (pos.startsWith(color + "WinZone")) return;
-      // Find current index in path
-      const pathIdx = path.indexOf(pos);
-      if (pathIdx === -1) return;
-      // Check if move stays in path
-      if (pathIdx + diceValue <= path.length) {
-        movable.push(idx);
-      }
-    });
-    return movable;
-  }
+        const isHome =
+          pos.endsWith("h1") ||
+          pos.endsWith("h2") ||
+          pos.endsWith("h3") ||
+          pos.endsWith("h4");
+        if (isHome) {
+          if (diceValue === 6) movable.push(idx);
+          return;
+        }
+        // If in win zone, skip
+        if (pos.startsWith(color + "WinZone")) return;
+        // Find current index in path
+        const pathIdx = path.indexOf(pos);
+        if (pathIdx === -1) return;
+        // Check if move stays in path
+        if (pathIdx + diceValue <= path.length) {
+          movable.push(idx);
+        }
+      });
+      return movable;
+    },
+    [gameState.pieces, diceValue]
+  );
 
   // Auto-move effect
   useEffect(() => {
@@ -463,15 +583,67 @@ const LudoBoard = ({ roomId }) => {
       // Only one move, auto-move it
       movePieceByColor(playerColor, movable[0]);
     }
-  }, [diceValue, currentTurn, playerColor, gameState, isRolling]);
+  }, [
+    diceValue,
+    currentTurn,
+    playerColor,
+    gameState,
+    isRolling,
+    getMovableTokens,
+    movePieceByColor,
+  ]);
 
   // Only allow movable tokens if it's my turn AND I have rolled the dice
   const hasRolled = lastRoll && lastRoll.roller === socket.id;
   const movableTokenIndices =
     isMyTurn && hasRolled && playerColor ? getMovableTokens(playerColor) : [];
 
+  // Render disconnect notification component
+  const renderDisconnectNotification = () => {
+    const disconnectedEntries = Object.entries(disconnectedPlayers);
+    if (disconnectedEntries.length === 0) return null;
+
+    return (
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-999">
+        {disconnectedEntries.map(([playerId, data]) => {
+          const countdown = countdownTimers[playerId];
+          const autoMove = autoMoveProgress[playerId];
+
+          return (
+            <div
+              key={playerId}
+              className="bg-yellow-500 text-white px-4 py-2 rounded-lg mb-2 shadow-lg animate-pulse"
+            >
+              {data.isAutoMoving ? (
+                <div className="text-center">
+                  <p className="font-semibold">
+                    Player {data.playerName} disconnected
+                  </p>
+                  <p className="text-sm">
+                    Auto-moves: {autoMove?.currentMove || 0}/
+                    {autoMove?.totalMoves || 5} moves started
+                  </p>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <p className="font-semibold">
+                    Player {data.playerName} disconnected
+                  </p>
+                  <p className="text-sm">
+                    Waiting {countdown || data.timeout} sec to return
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <>
+      {renderDisconnectNotification()}
       <div className="ludoContainer">
         <div id="ludoBoard">
           <div
