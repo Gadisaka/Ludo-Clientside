@@ -4,6 +4,7 @@ import useUserStore from "../store/zutstand";
 import useWalletStore from "../store/walletStore";
 import GameDetails from "./GameDetails";
 import { useNavigate } from "react-router-dom";
+import diceGif from "../assets/Dice.gif";
 
 // Dice rolling animation component using GIF
 const DiceRollingAnimation = ({ isVisible, onComplete }) => {
@@ -25,9 +26,9 @@ const DiceRollingAnimation = ({ isVisible, onComplete }) => {
       <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20 shadow-2xl">
         <div className="relative ">
           {/* Dice GIF */}
-          <div className="w-32 h-32 flex items-center justify-center">
+          <div className="w-48 h-48 flex items-center justify-center">
             <img
-              src="/src/assets/Dice.gif"
+              src={diceGif}
               alt="Dice Rolling Animation"
               className="w-full h-full object-contain"
             />

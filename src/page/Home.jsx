@@ -1,37 +1,101 @@
 import img from "../assets/ludoimage.png";
 import { Link, useNavigate } from "react-router-dom";
 import { Download, Wallet } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import useWalletStore from "../store/walletStore";
+import useAdsStore from "../store/adsStore";
 
 function Home() {
   const navigate = useNavigate();
   const { balance, getBalance } = useWalletStore();
+  const { ads, socialLinks, fetchAds, getCurrentImage } = useAdsStore();
 
-  // Fetch balance on component mount
+  // State for rotating images
+  const [currentImageIndex, setCurrentImageIndex] = useState({
+    adcode_1: 0,
+    adcode_2: 0,
+    adcode_3: 0,
+  });
+
+  // Fetch balance and ads on component mount
   useEffect(() => {
     getBalance();
-  }, [getBalance]);
+    fetchAds();
+  }, [getBalance, fetchAds]);
+
+  // Set up image rotation for multiple images
+  useEffect(() => {
+    const rotationInterval = setInterval(() => {
+      setCurrentImageIndex((prev) => {
+        const newIndex = { ...prev };
+
+        // Rotate adcode_1 images
+        if (ads.adcode_1 && ads.adcode_1.length > 1) {
+          newIndex.adcode_1 = (prev.adcode_1 + 1) % ads.adcode_1.length;
+        }
+
+        // Rotate adcode_2 images
+        if (ads.adcode_2 && ads.adcode_2.length > 1) {
+          newIndex.adcode_2 = (prev.adcode_2 + 1) % ads.adcode_2.length;
+        }
+
+        // Rotate adcode_3 images
+        if (ads.adcode_3 && ads.adcode_3.length > 1) {
+          newIndex.adcode_3 = (prev.adcode_3 + 1) % ads.adcode_3.length;
+        }
+
+        return newIndex;
+      });
+    }, 3000); // Change image every 3 seconds
+
+    return () => clearInterval(rotationInterval);
+  }, [ads]);
 
   return (
     <div className="min-h-screen w-full flex flex-col gap-4 bg-gray-900">
-      <div className="w-full h-32 bg-white rounded-lg  border-gray-300 flex justify-center items-center text-center mt-2">
-        <div>
-          <h1 className="text-black text-lg font-bold mb-1">የማስታወቂያ ቦታ</h1>
-          <p className="text-gray-500 text-xs">320x100px </p>
-        </div>
+      <div className="w-full h-32 bg-white rounded-lg border-gray-300 flex justify-center items-center text-center mt-2 overflow-hidden">
+        {ads.adcode_1 && ads.adcode_1.length > 0 ? (
+          <img
+            src={
+              getCurrentImage("adcode_1", currentImageIndex.adcode_1)?.url ||
+              getCurrentImage("adcode_1", currentImageIndex.adcode_1)
+            }
+            alt="Advertisement"
+            className="w-full h-full object-cover rounded-lg"
+          />
+        ) : (
+          <div>
+            {/* adcode_1 */}
+            <h1 className="text-black text-lg font-bold mb-1">የማስታወቂያ ቦታ</h1>
+            <p className="text-gray-500 text-xs">320x100px</p>
+          </div>
+        )}
       </div>
       <div className="w-full h-[200px] md:h-[315px] bg-white relative overflow-hidden">
-        <div className="relative z-10 w-full h-full flex items-center justify-center">
-          <div className="text-center text-black">
-            <h1 className="text-2xl md:text-4xl font-bold mb-2">የባነር ቦታ</h1>
-            <p className="text-sm md:text-lg opacity-90">Banner Space</p>
-          </div>
-        </div>
-        {/* Decorative elements */}
-        <div className="absolute top-4 right-4 text-black/50 text-xs">
-          1200x315px
-        </div>
+        {ads.adcode_2 && ads.adcode_2.length > 0 ? (
+          <img
+            src={
+              getCurrentImage("adcode_2", currentImageIndex.adcode_2)?.url ||
+              getCurrentImage("adcode_2", currentImageIndex.adcode_2)
+            }
+            alt="Banner Advertisement"
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <>
+            <div className="relative z-10 w-full h-full flex items-center justify-center">
+              <div className="text-center text-black">
+                {/* adcode_2 */}
+                <h1 className="text-2xl md:text-4xl font-bold mb-2">የባነር ቦታ</h1>
+                <p className="text-sm md:text-lg opacity-90">Banner Space</p>
+              </div>
+            </div>
+            {/* Decorative elements */}
+            <div className="absolute top-4 right-4 text-black/50 text-xs">
+              1000x315px
+            </div>
+          </>
+        )}
       </div>
 
       <main className="flex flex-col items-center gap-5 w-full p-5">
@@ -82,12 +146,89 @@ function Home() {
         </div>
 
         {/* Mobile Ad Space */}
-        <div className="w-full h-32 bg-white rounded-lg  border-gray-300 flex justify-center items-center text-center mt-2">
-          <div>
-            <h1 className="text-black text-lg font-bold mb-1">የማስታወቂያ ቦታ</h1>
-            <p className="text-gray-500 text-xs">320x100px </p>
-          </div>
+        <div className="w-full h-32 bg-white rounded-lg border-gray-300 flex justify-center items-center text-center mt-2 overflow-hidden">
+          {ads.adcode_3 && ads.adcode_3.length > 0 ? (
+            <img
+              src={
+                getCurrentImage("adcode_3", currentImageIndex.adcode_3)?.url ||
+                getCurrentImage("adcode_3", currentImageIndex.adcode_3)
+              }
+              alt="Mobile Advertisement"
+              className="w-full h-full object-cover rounded-lg"
+            />
+          ) : (
+            <div>
+              {/* adcode_3 */}
+              <h1 className="text-black text-lg font-bold mb-1">የማስታወቂያ ቦታ</h1>
+              <p className="text-gray-500 text-xs">320x100px</p>
+            </div>
+          )}
         </div>
+
+        {/* Social Media Links */}
+        {(socialLinks.facebook ||
+          socialLinks.tiktok ||
+          socialLinks.instagram ||
+          socialLinks.youtube ||
+          socialLinks.telegram) && (
+          <div className="w-full max-w-sm p-4 rounded-xl bg-gray-800 text-gray-300">
+            <h2 className="text-lg font-semibold mb-3 border-b border-gray-600 pb-1">
+              Follow Us
+            </h2>
+            <div className="flex flex-wrap gap-3 justify-center">
+              {socialLinks.facebook && (
+                <a
+                  href={socialLinks.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                >
+                  Facebook
+                </a>
+              )}
+              {socialLinks.tiktok && (
+                <a
+                  href={socialLinks.tiktok}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-2 bg-black text-white rounded-lg text-sm hover:bg-gray-800 transition-colors"
+                >
+                  TikTok
+                </a>
+              )}
+              {socialLinks.instagram && (
+                <a
+                  href={socialLinks.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-2 bg-pink-600 text-white rounded-lg text-sm hover:bg-pink-700 transition-colors"
+                >
+                  Instagram
+                </a>
+              )}
+              {socialLinks.youtube && (
+                <a
+                  href={socialLinks.youtube}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors"
+                >
+                  YouTube
+                </a>
+              )}
+              {socialLinks.telegram && (
+                <a
+                  href={socialLinks.telegram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors"
+                >
+                  Telegram
+                </a>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="w-full max-w-sm mt-6 p-4 rounded-xl bg-gray-800 text-gray-300">
           <h2 className="text-lg font-semibold mb-3 border-b border-gray-600 pb-1">

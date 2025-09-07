@@ -3,6 +3,7 @@ import "../../public/style.css";
 import socket from "../socket";
 import { useGame } from "../context/GameContext";
 import useUserStore from "../store/zutstand";
+import useAdsStore from "../store/adsStore";
 import Token from "./Token";
 import { safeZoneStar } from "./Dies";
 import GameResult from "./GameResult";
@@ -21,6 +22,7 @@ const LudoBoard = ({ roomId }) => {
   const setCurrentPlayerColor = useUserStore(
     (state) => state.setCurrentPlayerColor
   );
+  const { ads, fetchAds } = useAdsStore();
   const [gameState, setGameState] = useState({
     pieces: {
       // red: ["rh1", "rh2", "rh3", "rh4"],
@@ -65,6 +67,11 @@ const LudoBoard = ({ roomId }) => {
       isMyTurn
     );
   }, [currentTurn, isMyTurn]);
+
+  // Fetch ads on component mount
+  useEffect(() => {
+    fetchAds();
+  }, [fetchAds]);
 
   // Helper function to generate step-by-step path for bot movement
   const generateBotMovementPath = useCallback(
@@ -648,18 +655,36 @@ const LudoBoard = ({ roomId }) => {
         <div id="ludoBoard">
           <div
             id="red-Board"
-            className={`board ${
+            className={`board relative ${
               isMyTurn && currentTurnColor === "red"
                 ? "bg-red-700 animate-blink"
                 : ""
             }`}
           >
-            <div>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
+            <div className="">
+              {ads.redboardad ? (
+                <div className="absolute inset-0 ml-4 mt-4 flex items-center justify-center pointer-events-none z-10 overflow-hidden">
+                  <img
+                    src={ads.redboardad.url || ads.redboardad}
+                    alt="Red Board Advertisement"
+                    className="w-[100%] h-[100%] object-cover ml-28 mt-28 opacity-80 hover:opacity-100 transition-opacity duration-300 transform -translate-x-1/4 -translate-y-1/4"
+                    style={{
+                      minWidth: "100%",
+                      minHeight: "100%",
+                      transform: "scale(1.2) translate(-16.67%, -16.67%)",
+                    }}
+                  />
+                </div>
+              ) : (
+                <>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </>
+              )}
             </div>
+            {/* Red Board Ad Overlay */}
           </div>
           <div className="ludoBox verticalPath" id="p1"></div>
           <div className="ludoBox verticalPath" id="p2">
@@ -865,18 +890,36 @@ const LudoBoard = ({ roomId }) => {
           <div className="ludoBox verticalPath" id="p72"></div>
           <div
             id="yellow-Board"
-            className={`board ${
+            className={`board relative ${
               isMyTurn && currentTurnColor === "yellow"
                 ? "bg-yellow-700 animate-blink"
                 : ""
             }`}
           >
             <div>
-              <span></span>
-              <span></span>
-              <span></span>
-              <span></span>
+              {ads.yellowboardad ? (
+                <div className="absolute inset-0 ml-4 mt-4 flex items-center justify-center pointer-events-none z-10 overflow-hidden">
+                  <img
+                    src={ads.yellowboardad.url || ads.yellowboardad}
+                    alt="Yellow Board Advertisement"
+                    className="w-[100%] h-[100%] object-cover ml-28 mt-28 opacity-80 hover:opacity-100 transition-opacity duration-300 transform -translate-x-1/4 -translate-y-1/4"
+                    style={{
+                      minWidth: "100%",
+                      minHeight: "100%",
+                      transform: "scale(1.2) translate(-16.67%, -16.67%)",
+                    }}
+                  />
+                </div>
+              ) : (
+                <>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </>
+              )}
             </div>
+            {/* Yellow Board Ad Overlay */}
           </div>
           {Object.entries(gameState.pieces).map(([color, tokens]) =>
             tokens.map((pos, index) => {

@@ -107,7 +107,16 @@ const DieRollingPage = ({
 
           {/* Dice/Action Area */}
           <div className="flex-shrink-0">
-            {waitingForMove && isMyTurn ? (
+            {isRolling ? (
+              // Show rolling animation for ALL players when someone is rolling
+              <div className="flex items-center justify-center w-16 h-16 bg-white/30 backdrop-blur-sm rounded-lg border border-white/20">
+                <img
+                  src={animation3d}
+                  alt="Rolling dice"
+                  className="w-12 h-12 object-contain"
+                />
+              </div>
+            ) : waitingForMove && isMyTurn ? (
               // Show "Make Move" state when player rolled and needs to move
               <div className="flex flex-col items-center justify-center w-16 h-16 bg-white/30 backdrop-blur-sm rounded-lg border border-white/20">
                 <div className="text-xs text-white/80 font-medium text-center">
@@ -117,30 +126,17 @@ const DieRollingPage = ({
                   Move
                 </div>
               </div>
-            ) : !isMyTurn && isGameActive ? (
-              // Show waiting spinner for other players
-              <div className="flex flex-col items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-lg border border-white/10">
-                <div className="w-6 h-6 border-2 border-white/40 border-t-white/80 rounded-full animate-spin"></div>
-              </div>
             ) : (
-              // Show dice button
+              // Show dice button for current player when it's their turn
               <button
                 onClick={onRoll}
                 disabled={isDisabled || waitingForMove}
                 className={`w-16 h-16 p-1 rounded-lg border transition-all duration-300 ease-in-out ${getButtonStyle()}`}
               >
                 <div className="w-full h-full flex items-center justify-center">
-                  {isRolling ? (
-                    <img
-                      src={animation3d}
-                      alt="Rolling dice"
-                      className="w-12 h-12 object-contain"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 flex items-center justify-center">
-                      {dieMap[value]}
-                    </div>
-                  )}
+                  <div className="w-12 h-12 flex items-center justify-center">
+                    {dieMap[value]}
+                  </div>
                 </div>
               </button>
             )}

@@ -4,6 +4,7 @@ import LudoBoard from "./Ludoboard";
 import socket from "../socket";
 import { useGame } from "../context/GameContext";
 import useSocketEvents from "../hooks/useSocketEvents";
+import useAdsStore from "../store/adsStore";
 import bg from "../assets/Picsart_25-06-24_16-26-17-659.jpg";
 import { crown } from "./Dies";
 import coin from "../assets/coin.png";
@@ -37,6 +38,9 @@ const PlayingPage = () => {
     gameSettings,
     isLoadingGameSettings,
   } = useGame();
+
+  // Ads store
+  const { ads, fetchAds } = useAdsStore();
 
   // Calculate winnings (2 * stake - cut percentage)
   const calculateWinnings = (stake, cutPercentage = 10) => {
@@ -75,6 +79,11 @@ const PlayingPage = () => {
     console.log("🎮 PlayingPage - players:", players);
     console.log("🎮 PlayingPage - currentTurn:", currentTurn);
   }, [gameStatus, players, currentTurn]);
+
+  // Fetch ads on component mount
+  useEffect(() => {
+    fetchAds();
+  }, [fetchAds]);
 
   // Simple hook for socket events
   useSocketEvents(roomId);
@@ -333,9 +342,16 @@ const PlayingPage = () => {
             </p>
           </div>
         </div>
-        <div className="w-[90%] h-[50px] bg-white text-black z-100 flex justify-center items-center">
-          {" "}
-          ad will be displayed here
+        <div className="w-[320px] h-[60px] bg-white rounded-lg text-black z-100 flex justify-center items-center overflow-hidden">
+          {ads.ingamead ? (
+            <img
+              src={ads.ingamead.url || ads.ingamead}
+              alt="In-Game Advertisement"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <span className="text-gray-500 text-sm">Advertisement Space</span>
+          )}
         </div>
       </div>
       <LudoBoard roomId={roomId} />
