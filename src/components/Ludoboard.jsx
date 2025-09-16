@@ -41,6 +41,9 @@ const LudoBoard = ({ roomId }) => {
   // New state for backwards animation
   const [backwardsAnimation, setBackwardsAnimation] = useState(null);
 
+  // State for win zone entry animation
+  const [winZoneAnimation, setWinZoneAnimation] = useState(false);
+
   // Disconnect and auto-move tracking states
   const [disconnectedPlayers, setDisconnectedPlayers] = useState({});
   const [autoMoveProgress, setAutoMoveProgress] = useState({});
@@ -301,6 +304,18 @@ const LudoBoard = ({ roomId }) => {
       });
     }
   }, [step, matchResults]);
+
+  // Effect to trigger win zone animation when a token enters the win zone
+  useEffect(() => {
+    if (step && isWinZone(step.position, step.color)) {
+      setWinZoneAnimation(true);
+
+      // Hide animation after 2 seconds
+      setTimeout(() => {
+        setWinZoneAnimation(false);
+      }, 2000);
+    }
+  }, [step]);
 
   // Effect to handle game result when game ends (for bot wins or other scenarios)
   useEffect(() => {
@@ -804,6 +819,20 @@ const LudoBoard = ({ roomId }) => {
                 backgroundColor: "#00ACFF",
               }}
             ></div>
+
+            {/* Golden Win Zone Animation */}
+            {winZoneAnimation && (
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute inset-0 border-4 border-yellow-400 rounded-lg animate-pulse shadow-lg shadow-yellow-400/50"></div>
+                <div className="absolute inset-1 border-2 border-yellow-300 rounded-lg animate-ping opacity-75"></div>
+                <div className="absolute inset-2 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 rounded-md opacity-20 animate-pulse"></div>
+                {/* Sparkle effects */}
+                <div className="absolute top-1 left-1 w-2 h-2 bg-yellow-200 rounded-full animate-ping"></div>
+                <div className="absolute top-1 right-1 w-1.5 h-1.5 bg-yellow-300 rounded-full animate-ping delay-300"></div>
+                <div className="absolute bottom-1 left-1 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping delay-500"></div>
+                <div className="absolute bottom-1 right-1 w-2 h-2 bg-yellow-200 rounded-full animate-ping delay-700"></div>
+              </div>
+            )}
           </div>
           <div className="ludoBox horizontalPath" id="p37"></div>
           <div className="ludoBox horizontalPath redLudoBox" id="p38"></div>

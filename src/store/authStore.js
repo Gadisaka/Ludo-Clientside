@@ -65,8 +65,15 @@ const useAuthStore = create(
         try {
           set({ loading: true, error: null });
           const res = await axios.post(`${API_URL}/auth/register`, data);
-          if (res.data2.user && res.data.token) {
-            set({ user: res.data.user, token: res.data.token, loading: false });
+          if (res.data.user) {
+            // After successful signup, automatically log in the user to get a token
+            const loginRes = await axios.post(`${API_URL}/auth/login`, {
+              phone: data.phone,
+              password: data.password,
+              role: "PLAYER",
+            });
+            const { user, token } = loginRes.data;
+            set({ user, token, loading: false });
           } else {
             set({ loading: false });
           }

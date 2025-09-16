@@ -115,7 +115,7 @@ const useWalletStore = create(
             }
           );
 
-          // Update balance
+          // Update balance (balance is always deducted for withdrawals)
           set({
             balance: response.data.newBalance,
             loading: false,

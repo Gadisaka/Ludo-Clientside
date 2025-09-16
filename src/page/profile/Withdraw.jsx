@@ -13,15 +13,9 @@ import useWalletStore from "../../store/walletStore";
 
 const Withdraw = () => {
   const navigate = useNavigate();
-  const { 
-    balance, 
-    loading, 
-    error, 
-    withdraw, 
-    getBalance, 
-    clearError 
-  } = useWalletStore();
-  
+  const { balance, loading, error, withdraw, getBalance, clearError } =
+    useWalletStore();
+
   const [selectedMethod, setSelectedMethod] = useState("");
   const [amount, setAmount] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -41,7 +35,7 @@ const Withdraw = () => {
       icon: <FaMobileAlt className="w-6 h-6" />,
       description: "Withdraw to TeleBirr wallet",
       color: "from-orange-500 to-red-500",
-      fee: "2%",
+      fee: "Free",
       minAmount: 50,
     },
     {
@@ -53,60 +47,49 @@ const Withdraw = () => {
       fee: "Free",
       minAmount: 100,
     },
-    {
-      id: "awash",
-      name: "Awash Bank",
-      icon: <FaCreditCard className="w-6 h-6" />,
-      description: "Withdraw to Awash bank account",
-      color: "from-green-500 to-green-600",
-      fee: "1%",
-      minAmount: 100,
-    },
-    {
-      id: "ebirr",
-      name: "eBirr",
-      icon: <FaWallet className="w-6 h-6" />,
-      description: "eBirr digital wallet",
-      color: "from-purple-500 to-purple-600",
-      fee: "1.5%",
-      minAmount: 25,
-    },
   ];
 
-  const selectedMethodData = withdrawMethods.find(
-    (m) => m.id === selectedMethod
-  );
   const withdrawAmount = parseFloat(amount) || 0;
-  const fee =
-    selectedMethodData?.fee === "Free"
-      ? 0
-      : withdrawAmount *
-        (parseFloat(selectedMethodData?.fee?.replace("%", "") || "0") / 100);
-  const totalDeduction = withdrawAmount + fee;
+
+  // Get minimum amount for selected method
+  const getMinAmount = () => {
+    if (!selectedMethod) return 0;
+    const method = withdrawMethods.find((m) => m.id === selectedMethod);
+    return method ? method.minAmount : 0;
+  };
+
+  const minAmount = getMinAmount();
+  const isAmountBelowMinimum = withdrawAmount > 0 && withdrawAmount < minAmount;
 
   const handleWithdraw = async () => {
-    if (!selectedMethod || !amount || totalDeduction > balance) return;
-    
+    if (
+      !selectedMethod ||
+      !amount ||
+      withdrawAmount > balance ||
+      isAmountBelowMinimum
+    )
+      return;
+
     try {
       clearError();
-      const accountDetails = selectedMethod === "telebirr" || selectedMethod === "ebirr" 
-        ? phoneNumber 
-        : bankAccount;
-      
+      const accountDetails =
+        selectedMethod === "telebirr" ? phoneNumber : bankAccount;
+
       await withdraw(amount, selectedMethod, accountDetails);
-      
-      setSuccessMessage(`Successfully withdrew ${amount} ብር via ${selectedMethod}! Fee: ${fee.toFixed(2)} ብር`);
+
+      setSuccessMessage(
+        `Withdrawal request submitted for ${amount} ብር via ${selectedMethod}! Amount deducted from balance.`
+      );
       setShowSuccess(true);
-      
+
       // Reset form
       setAmount("");
       setSelectedMethod("");
       setPhoneNumber("");
       setBankAccount("");
-      
+
       // Hide success message after 5 seconds
       setTimeout(() => setShowSuccess(false), 5000);
-      
     } catch (error) {
       console.error("Withdrawal failed:", error);
     }
@@ -168,6 +151,12 @@ const Withdraw = () => {
             onChange={(e) => setAmount(e.target.value)}
             className="w-full bg-gray-800 border border-gray-600 text-white placeholder-gray-400 text-2xl h-14 rounded-md px-4 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             max={balance}
+            min={
+              selectedMethod
+                ? withdrawMethods.find((m) => m.id === selectedMethod)
+                    ?.minAmount || 0
+                : 0
+            }
           />
           <div className="flex space-x-2 mt-2">
             {[100, 500, 1000, balance].map((preset, index) => (
@@ -212,9 +201,6 @@ const Withdraw = () => {
                   </div>
                   <div className="text-right">
                     <p className="text-green-400 text-sm font-medium">
-                      Fee: {method.fee}
-                    </p>
-                    <p className="text-gray-400 text-xs">
                       Min: {method.minAmount} ብር
                     </p>
                   </div>
@@ -227,7 +213,7 @@ const Withdraw = () => {
           ))}
         </div>
         {/* Account Details Input */}
-        {selectedMethod === "telebirr" || selectedMethod === "ebirr" ? (
+        {selectedMethod === "telebirr" ? (
           <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 mb-4">
             <label htmlFor="phone" className="block text-gray-300 mb-2">
               Phone Number
@@ -241,7 +227,7 @@ const Withdraw = () => {
               className="w-full bg-gray-800 border border-gray-600 text-white placeholder-gray-400 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-        ) : selectedMethod === "cbe" || selectedMethod === "awash" ? (
+        ) : selectedMethod === "cbe" ? (
           <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 mb-4">
             <label htmlFor="account" className="block text-gray-300 mb-2">
               Bank Account Number
@@ -256,33 +242,38 @@ const Withdraw = () => {
             />
           </div>
         ) : null}
-        {/* Fee Breakdown */}
+        {/* Amount Summary */}
         {selectedMethod && amount && (
           <div className="bg-gray-900 border border-gray-700 rounded-xl p-6 mb-4">
             <div className="space-y-2">
-              <div className="flex justify-between text-gray-300">
+              <div className="flex justify-between text-white font-semibold">
                 <span>Withdrawal Amount:</span>
                 <span>{withdrawAmount.toFixed(2)} ብር</span>
-              </div>
-              <div className="flex justify-between text-gray-300">
-                <span>Transaction Fee:</span>
-                <span>{fee.toFixed(2)} ብር</span>
-              </div>
-              <hr className="border-gray-600" />
-              <div className="flex justify-between text-white font-semibold">
-                <span>Total Deduction:</span>
-                <span>{totalDeduction.toFixed(2)} ብር</span>
               </div>
             </div>
           </div>
         )}
         {/* Warning for insufficient funds */}
-        {totalDeduction > balance && (
+        {withdrawAmount > balance && (
           <div className="bg-red-900/20 border border-red-700 rounded-xl p-6 mb-4">
             <div className="flex items-center space-x-3 text-red-400">
               <FaExclamationTriangle className="w-5 h-5" />
               <p className="text-sm">
-                Insufficient balance for this withdrawal amount including fees.
+                Insufficient balance for this withdrawal amount.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Warning for amount below minimum */}
+        {isAmountBelowMinimum && (
+          <div className="bg-red-900/20 border border-red-700 rounded-xl p-6 mb-4">
+            <div className="flex items-center space-x-3 text-red-400">
+              <FaExclamationTriangle className="w-5 h-5" />
+              <p className="text-sm">
+                Minimum withdrawal amount for{" "}
+                {withdrawMethods.find((m) => m.id === selectedMethod)?.name} is{" "}
+                {minAmount} ብር.
               </p>
             </div>
           </div>
@@ -291,7 +282,11 @@ const Withdraw = () => {
         <button
           onClick={handleWithdraw}
           disabled={
-            !selectedMethod || !amount || totalDeduction > balance || loading
+            !selectedMethod ||
+            !amount ||
+            withdrawAmount > balance ||
+            isAmountBelowMinimum ||
+            loading
           }
           className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-4 text-lg rounded-xl disabled:bg-gray-600 flex items-center justify-center"
         >

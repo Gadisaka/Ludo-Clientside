@@ -3,7 +3,7 @@ import socket from "../socket";
 import useUserStore from "../store/zutstand";
 import { crown } from "./Dies";
 import useWalletStore from "../store/walletStore";
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaLock } from "react-icons/fa";
 
 const GameDetails = ({ onClose, onGameStart }) => {
   const [step, setStep] = useState(1); // 1: stake, 2: pieces, 3: confirmation
@@ -14,7 +14,6 @@ const GameDetails = ({ onClose, onGameStart }) => {
   const setGameSetting = useUserStore((state) => state.setGameSetting);
   const [error, setError] = useState("");
   const [isLoading, setIsLoadign] = useState(false);
-  const [stakeInputError, setStakeInputError] = useState("");
 
   setGameSetting({ stake: selectedStake, requiredPieces: selectedPieces });
 
@@ -47,7 +46,6 @@ const GameDetails = ({ onClose, onGameStart }) => {
   }, [onGameStart]);
 
   const handleStakeSelect = (stake) => {
-    if (stake < 20) return; // Prevent selecting stake under 20
     setSelectedStake(stake);
     setStep(2);
   };
@@ -86,60 +84,45 @@ const GameDetails = ({ onClose, onGameStart }) => {
             {stakeOptions.map((stake) => (
               <button
                 key={stake}
-                disabled={stake > balance || stake < 20}
+                disabled={stake > balance}
                 onClick={() => handleStakeSelect(stake)}
                 className={`p-3  flex flex-col justify-center items-center  rounded-lg hover:bg-gray-950 transition ${
-                  stake > balance || stake < 20
-                    ? "bg-gray-900/50"
-                    : "bg-gray-900"
+                  stake > balance ? "bg-gray-900/50" : "bg-gray-900"
                 } `}
               >
                 {stake}
-                {stake < 20 && <h1 className="text-sm text-red-500">min 20</h1>}
                 {stake > balance && (
                   <h1 className="text-sm text-red-500">insufficient</h1>
                 )}
               </button>
             ))}
           </div>
-          <div className="flex gap-2 w-full justify-center items-center rounded-lg hover:bg-gray-540 transition">
-            <input
-              type="text"
-              placeholder="Enter amount"
-              value={selectedStake || ""}
-              onChange={(e) => {
-                const value = e.target.value;
-                const num = Number(value);
-                setSelectedStake(num);
-                if (value === "" || isNaN(num)) {
-                  setStakeInputError("");
-                } else if (num < 20) {
-                  setStakeInputError("Minimum bet is 20");
-                } else {
-                  setStakeInputError("");
+          <div className="flex flex-col gap-2 w-full justify-center items-center">
+            <div className="flex gap-2 w-full justify-center items-center rounded-lg hover:bg-gray-540 transition">
+              <input
+                type="number"
+                placeholder="Enter amount"
+                onChange={(e) => setSelectedStake(Number(e.target.value))}
+                className="p-3 flex flex-col justify-center items-center bg-gray-900 rounded-lg hover:bg-gray-540 transition"
+              />
+              <button
+                onClick={() => handleStakeSelect(selectedStake)}
+                className={`p-3 flex flex-col justify-center items-center  rounded-lg hover:bg-gray-540 transition ${
+                  isLoading || selectedStake > balance || selectedStake < 20
+                    ? "bg-gray-900/50"
+                    : "bg-gray-900"
+                }`}
+                disabled={
+                  isLoading || selectedStake > balance || selectedStake < 20
                 }
-              }}
-              className="p-3 flex flex-col justify-center items-center bg-gray-900 rounded-lg hover:bg-gray-540 transition"
-            />
-            <button
-              onClick={() => handleStakeSelect(selectedStake)}
-              className={`p-3 flex flex-col justify-center items-center  rounded-lg hover:bg-gray-540 transition ${
-                isLoading || selectedStake > balance || selectedStake < 20
-                  ? "bg-gray-900/50"
-                  : "bg-gray-900"
-              }`}
-              disabled={
-                isLoading || selectedStake > balance || selectedStake < 20
-              }
-            >
-              Enter
-            </button>
-          </div>
-          {stakeInputError && (
-            <div className="text-red-500 text-sm text-center mt-1">
-              {stakeInputError}
+              >
+                Enter
+              </button>
             </div>
-          )}
+            {selectedStake && selectedStake < 20 && (
+              <p className="text-red-500 text-sm">Minimum bet is 20</p>
+            )}
+          </div>
         </div>
       )}
 
@@ -155,22 +138,29 @@ const GameDetails = ({ onClose, onGameStart }) => {
           </div>
           <div className="grid grid-cols-4 gap-3">
             {pieceOptions.map((pieces) => {
-              const isDisabled =
+              const isLocked =
                 selectedStake < 500 && (pieces === 3 || pieces === 4);
               return (
                 <button
                   key={pieces}
-                  onClick={() => !isDisabled && handlePiecesSelect(pieces)}
-                  disabled={isDisabled}
-                  className={`p-3 flex flex-col justify-center items-center bg-gray-900 rounded-lg hover:bg-gray-540 transition ${
-                    isDisabled ? "opacity-50 cursor-not-allowed" : ""
+                  onClick={() => !isLocked && handlePiecesSelect(pieces)}
+                  disabled={isLocked}
+                  className={`p-3 flex flex-col justify-center items-center rounded-lg transition relative ${
+                    isLocked
+                      ? "bg-gray-900/50 cursor-not-allowed"
+                      : "bg-gray-900 hover:bg-gray-540"
                   }`}
                 >
+                  {isLocked && (
+                    <div className="absolute top-1 right-1">
+                      <FaLock className="text-red-500 text-xs" />
+                    </div>
+                  )}
                   {crown}
                   {pieces} ባነገሰ
-                  {isDisabled && (
-                    <span className="text-xs text-yellow-400 mt-1">
-                      only available for bets &gt;500
+                  {isLocked && (
+                    <span className="text-xs text-red-500 mt-1 text-center">
+                      bet must be above 500
                     </span>
                   )}
                 </button>

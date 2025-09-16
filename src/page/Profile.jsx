@@ -197,6 +197,9 @@ const Profile = () => {
                           ? "Game Stake"
                           : transaction.type === "game_winnings"
                           ? "Game Won"
+                          : transaction.type === "withdraw" &&
+                            transaction.status === "pending"
+                          ? "Withdrawal Request"
                           : transaction.type}
                       </p>
                       <p className="text-sm text-gray-400">
@@ -213,8 +216,20 @@ const Profile = () => {
                     >
                       {formatAmount(transaction.amount)}
                     </p>
-                    <p className="text-xs text-gray-400 uppercase">
-                      {transaction.status}
+                    <p
+                      className={`text-xs uppercase font-medium ${
+                        transaction.status === "pending"
+                          ? "text-yellow-400"
+                          : transaction.status === "completed"
+                          ? "text-green-400"
+                          : transaction.status === "failed"
+                          ? "text-red-400"
+                          : "text-gray-400"
+                      }`}
+                    >
+                      {transaction.status === "pending"
+                        ? "⏳ Pending"
+                        : transaction.status}
                     </p>
                   </div>
                 </div>
