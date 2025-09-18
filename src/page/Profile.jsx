@@ -9,7 +9,7 @@ import {
   FaPlus,
   FaMinus,
 } from "react-icons/fa";
-import useAuthStore from "../store/authStore";
+import useTelegramAuthStore from "../store/telegramAuthStore";
 import useWalletStore from "../store/walletStore";
 import { useNavigate } from "react-router-dom";
 
@@ -18,8 +18,8 @@ const Profile = () => {
     useWalletStore();
   const [recentTransactions, setRecentTransactions] = useState([]);
 
-  const logout = useAuthStore((state) => state.logout);
-  const user = useAuthStore((state) => state.user);
+  const logout = useTelegramAuthStore((state) => state.logout);
+  const user = useTelegramAuthStore((state) => state.user);
   console.log(user);
 
   const navigate = useNavigate();
@@ -260,7 +260,7 @@ const Profile = () => {
             className="w-full border-green-500 py-3 hover:bg-green-700 font-bold  rounded-xl text-xl text-white bg-gray-900 "
             onClick={() => {
               logout();
-              navigate("/login");
+              navigate("/auth");
             }}
           >
             Logout

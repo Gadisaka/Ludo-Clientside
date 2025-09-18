@@ -9,12 +9,12 @@ import {
   FaSpinner,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import useAuthStore from "../store/authStore";
+import useTelegramAuthStore from "../store/telegramAuthStore";
 import useGameHistoryStore from "../store/gameHistoryStore";
 
 const GameHistory = () => {
   const navigate = useNavigate();
-  const { user, token } = useAuthStore();
+  const { user, token } = useTelegramAuthStore();
   const { gameHistory, loading, error, fetchGameHistory } =
     useGameHistoryStore();
 

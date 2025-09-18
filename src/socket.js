@@ -1,10 +1,9 @@
 import { io } from "socket.io-client";
 import { API_URL } from "../constants";
-// import useAuthStore from "./store/authStore";
 
 //https://ludo-serverside.onrender.com
 //http://localhost:4002
-const persisted = localStorage.getItem("auth-storage");
+const persisted = localStorage.getItem("telegram-auth-storage");
 let token = null;
 if (persisted) {
   try {
