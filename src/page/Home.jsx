@@ -270,9 +270,9 @@ function Home() {
             How It Works
           </h2>
           <ol className="list-decimal list-inside text-sm space-y-1 text-gray-400">
-            <li>ገንዘብ አካውንቶ ውስት ያስገቡ</li>
-            <li>ጌም ይቀላቀሉ ወይንም አዲስ ይፍተሩ</li>
-            <li>የቻወቱ፣ ይወዳደሩ፣ ያሸንፉ።</li>
+            <li>ገንዘብ አካውንቶ ውስጥ ያስገቡ</li>
+            <li>ጌም ይቀላቀሉ ወይንም አዲስ ይፍጠሩ</li>
+            <li>ይጫወቱ፣ ይወዳደሩ፣ ያሸንፉ።</li>
           </ol>
         </div>
       </main>

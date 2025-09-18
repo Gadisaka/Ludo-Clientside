@@ -28,6 +28,9 @@ const PlayingPage = () => {
   // Cut percentage state
   const [cutPercentage, setCutPercentage] = useState(10); // Default 10%
 
+  // Refreshing state
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   const {
     value,
     isRolling,
@@ -297,8 +300,14 @@ const PlayingPage = () => {
           <button
             className="rounded-full p-1 cursor-pointer transition-colors bg-blue-500 hover:bg-blue-600"
             onClick={() => {
+              setIsRefreshing(true);
               socket.emit("getGameData", { gameId: roomId });
               console.log("Manual refresh requested for room:", roomId);
+
+              // Hide the overlay after 2 seconds
+              setTimeout(() => {
+                setIsRefreshing(false);
+              }, 2000);
             }}
             title="Refresh game settings"
           >
@@ -410,6 +419,52 @@ const PlayingPage = () => {
           </div>
         )}
       </div>
+
+      {/* Refreshing Game Overlay */}
+      {isRefreshing && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999]">
+          <div className="bg-gray-900/90 border border-gray-600 rounded-2xl p-8 text-center shadow-2xl backdrop-blur-md max-w-md mx-4">
+            <div className="mb-6">
+              {/* Spinning refresh icon */}
+              <div className="flex justify-center mb-4">
+                <svg
+                  width="60px"
+                  height="60px"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="text-blue-500 animate-spin"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M4 4v5h.582M20 20v-5h-.581M19.418 9A7.978 7.978 0 0012 4c-3.042 0-5.824 1.721-7.418 4M4.582 15A7.978 7.978 0 0012 20c3.042 0 5.824-1.721 7.418-4"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                Refreshing Game
+              </h2>
+              <p className="text-gray-300">Loading latest game data...</p>
+            </div>
+
+            {/* Loading dots animation */}
+            <div className="flex justify-center space-x-1">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+              <div
+                className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                style={{ animationDelay: "0.1s" }}
+              ></div>
+              <div
+                className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                style={{ animationDelay: "0.2s" }}
+              ></div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Leave Countdown Overlay */}
       {showLeaveCountdown && (
