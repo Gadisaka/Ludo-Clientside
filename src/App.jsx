@@ -1,10 +1,10 @@
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import TelegramProtectedRoute from "./components/TelegramProtectedRoute";
+import ProtectedRoute from "./components/ProtectedRoute";
 import ProtectedLayout from "./components/ProtectedLayout";
 import Game from "./page/Game";
 import Home from "./page/Home";
-import TelegramAuth from "./components/TelegramAuth";
+import Login from "./page/auth/Login";
 import PlayingPage from "./components/PlayingPage";
 import Profile from "./page/Profile";
 import History from "./page/History";
@@ -15,10 +15,10 @@ import Withdraw from "./page/profile/Withdraw";
 const App = () => {
   return (
     <Routes>
-      <Route path="/auth" element={<TelegramAuth />} />
-      <Route element={<TelegramProtectedRoute />}>
+      <Route path="/login" element={<Login />} />
+      <Route element={<ProtectedRoute />}>
         {" "}
-        {/* Telegram auth check */}
+        {/* Auth check */}
         <Route path="/deposit" element={<Deposit />} />
         <Route path="/withdraw" element={<Withdraw />} />
         <Route element={<ProtectedLayout />}>
