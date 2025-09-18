@@ -14,6 +14,7 @@ const TelegramAuth = () => {
     updatePhoneNumber,
     autoAuthenticate,
     clearError,
+    setError,
   } = useTelegramAuthStore();
 
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -23,9 +24,15 @@ const TelegramAuth = () => {
     // Initialize Telegram Web App and attempt auto-authentication
     const initAuth = async () => {
       try {
+        console.log("Starting auto-authentication...");
+        console.log("Telegram WebApp available:", !!window.Telegram?.WebApp);
+        console.log("initData available:", !!window.Telegram?.WebApp?.initData);
+
         await autoAuthenticate();
       } catch (err) {
         console.error("Auto-authentication failed:", err);
+        // Set error state so user can see what's wrong
+        setError(`Authentication failed: ${err.message}`);
       }
     };
 
@@ -80,6 +87,9 @@ const TelegramAuth = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
           <p className="text-white text-lg">Authenticating with Telegram...</p>
+          <p className="text-blue-200 text-sm mt-2">
+            Please wait while we verify your identity
+          </p>
         </div>
       </div>
     );
@@ -231,12 +241,69 @@ const TelegramAuth = () => {
     );
   }
 
+  // Show error state if there's an error
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
+        <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 p-8 max-w-md w-full text-center">
+          <div className="mx-auto w-20 h-20 bg-gradient-to-r from-red-400 to-red-500 rounded-full flex items-center justify-center shadow-lg mb-6">
+            <svg
+              className="w-10 h-10 text-white"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-white mb-4">
+            Authentication Error
+          </h2>
+          <p className="text-blue-100 mb-6">{error}</p>
+          <div className="bg-blue-500/20 border border-blue-500/30 rounded-xl p-4 mb-6">
+            <p className="text-blue-200 text-sm">
+              <strong>Debug Info:</strong>
+              <br />
+              Telegram WebApp:{" "}
+              {window.Telegram?.WebApp ? "Available" : "Not Available"}
+              <br />
+              initData:{" "}
+              {window.Telegram?.WebApp?.initData
+                ? "Available"
+                : "Not Available"}
+              <br />
+              User Agent:{" "}
+              {navigator.userAgent.includes("Telegram")
+                ? "Telegram"
+                : "Not Telegram"}
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              clearError();
+              window.location.reload();
+            }}
+            className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Default loading state
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 flex items-center justify-center">
       <div className="text-center">
         <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
         <p className="text-white text-lg">Initializing...</p>
+        <p className="text-blue-200 text-sm mt-2">
+          Setting up Telegram Web App...
+        </p>
       </div>
     </div>
   );

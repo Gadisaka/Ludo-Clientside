@@ -135,10 +135,14 @@ const useTelegramAuthStore = create(
       // Auto-authenticate on app load
       autoAuthenticate: async () => {
         try {
+          console.log("Starting auto-authentication...");
+
           // Check if we're in Telegram Web App
           if (!get().initTelegramWebApp()) {
             console.log("Not running in Telegram Web App");
-            return false;
+            throw new Error(
+              "Not running in Telegram Web App. Please open this app through your Telegram bot."
+            );
           }
 
           // Check if user is already authenticated
@@ -148,19 +152,24 @@ const useTelegramAuthStore = create(
             try {
               const decoded = jwtDecode(token);
               if (decoded.exp && Date.now() / 1000 < decoded.exp) {
+                console.log("User already authenticated with valid token");
                 return true; // Already authenticated and token is valid
               }
             } catch {
+              console.log("Token is invalid, re-authenticating...");
               // Token is invalid, continue with re-authentication
             }
           }
 
           // Attempt auto-authentication
+          console.log("Attempting Telegram authentication...");
           await get().authenticateWithTelegram();
+          console.log("Telegram authentication successful");
           return true;
         } catch (err) {
           console.error("Auto-authentication failed:", err);
-          return false;
+          set({ error: err.message });
+          throw err;
         }
       },
 
@@ -170,6 +179,7 @@ const useTelegramAuthStore = create(
       },
 
       clearError: () => set({ error: null }),
+      setError: (error) => set({ error }),
     }),
     { name: "telegram-auth-storage" }
   )
