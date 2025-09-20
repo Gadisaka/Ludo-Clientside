@@ -40,6 +40,9 @@ const PlayingPage = () => {
     rollDice,
     gameSettings,
     isLoadingGameSettings,
+    turnTimeLeft,
+    isMyTurn,
+    showTimer,
   } = useGame();
 
   // Ads store
@@ -397,6 +400,20 @@ const PlayingPage = () => {
           players={players}
           currentTurn={currentTurn}
         />
+
+        {/* Turn Countdown Timer - Progress Bar Only */}
+        {showTimer && gameStatus === "playing" && isMyTurn && (
+          <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-50">
+            <div className=" px-6 py-3  ">
+              <div className="w-48 bg-gray-900/50 rounded-full h-3">
+                <div
+                  className="bg-red-500 h-3 rounded-full transition-all duration-1000"
+                  style={{ width: `${(turnTimeLeft / 30) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Second player (right) */}
         {players[1] && (
